@@ -90,22 +90,26 @@ test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, trans
 
 >与训练集几乎完全相同，唯一的区别是 train=False。作用：加载测试集（包含 10,000 张图片），用于最后评估模型的真实准确率。同样，它在读取时也会应用相同的预处理。
 
-Note
-This section is for CPU users only who are interested in quick results. Use this option only if you’re interested in a small scale experiment. Keep in mind the code should run fairly quickly using any GPU. Select only the first num_images_to_keep images from the train/test dataset
+4. Dataloaders
 
-#from torch.utils.data import Subset
-#num_images_to_keep = 2000
-#train_dataset = Subset(train_dataset, range(min(num_images_to_keep, 50_000)))
-#test_dataset = Subset(test_dataset, range(min(num_images_to_keep, 10_000)))
-
-#Dataloaders
+```python
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True, num_workers=2)
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=128, shuffle=False, num_workers=2)
+```
 
-Defining model classes and utility functions
+> batch_size=128  作用：每次打包 128 张图片作为一个批次送进模型。模型前向传播、计算 Loss、反向传播更新权重，都是基于这 128 张图进行的。
 
-Next, we need to define our model classes. Several user-defined parameters need to be set here. We use two different architectures, keeping the number of filters fixed across our experiments to ensure fair comparisons. Both architectures are Convolutional Neural Networks (CNNs) with a different number of convolutional layers that serve as feature extractors, followed by a classifier with 10 classes. The number of filters and neurons is smaller for the students.
+> shuffle=True (仅训练集)作用：每个 Epoch（一轮训练）开始时，把 50000 张图完全打乱顺序。打乱顺序能打破这种相关性，让模型真正学到图像特征，防止过拟合。
 
+> shuffle=False (仅测试集)作用：测试时按原顺序加载，不打乱。
+
+> num_workers=2作用：使用 2 个子进程（线程）在后台并行加载数据。
+
+## Defining model classes and utility functions
+
+Next, we need to **define our model classes**. Several user-defined parameters need to be set here. We use two different architectures, keeping the number of filters fixed across our experiments to ensure fair comparisons. Both architectures are Convolutional Neural Networks (CNNs) with a different number of convolutional layers that serve as feature extractors, followed by a classifier with 10 classes. The number of filters and neurons is smaller for the students.
+
+```python
 # Deeper neural network class to be used as teacher:
 class DeepNN(nn.Module):
     def __init__(self, num_classes=10):
@@ -159,24 +163,67 @@ class LightNN(nn.Module):
         x = torch.flatten(x, 1)
         x = self.classifier(x)
         return x
+```
 
-We employ 2 functions to help us produce and evaluate the results on our original classification task. One function is called train and takes the following arguments:
+> DeepNN（教师模型 / Teacher）
 
-    model: A model instance to train (update its weights) via this function.
+这是一个参数较多、结构较深的网络
 
-    train_loader: We defined our train_loader above, and its job is to feed the data into the model.
+    卷积层（features）：
 
-    epochs: How many times we loop over the dataset.
+        使用了两个连续的 Conv2d + ReLU（通道数 3→128→64），再接一个 MaxPool2d 下采样（图片尺寸 32→16）。
 
-    learning_rate: The learning rate determines how large our steps towards convergence should be. Too large or too small steps can be detrimental.
+        接着又用两个连续的 Conv2d + ReLU（通道数 64→64→32），再接一个 MaxPool2d 下采样（图片尺寸 16→8）。
 
-    device: Determines the device to run the workload on. Can be either CPU or GPU depending on availability.
+        注意：这里没有使用 BatchNorm（BN层），而且在进入全连接层前，特征图尺寸变成了 8x8，通道是 32。
 
-Our test function is similar, but it will be invoked with test_loader to load images from the test set.
-../_static/img/knowledge_distillation/ce_only.png
+    分类头（classifier）：
 
-Train both networks with Cross-Entropy. The student will be used as a baseline:
+        因为到了这一层，特征图是 32通道 × 8 × 8，所以展平（flatten）后的维度是 32 * 8 * 8 = 2048。
 
+        通过 nn.Linear(2048, 512) 降维，再通过 Dropout(0.1) 防止过拟合，最后输出 num_classes（即10类）。
+
+> LightNN（学生模型 / Student）
+
+这是一个参数很少、轻量级的网络，目标是模仿Teacher的输出。
+
+    卷积层（features）：
+
+        通道数大幅度减少（3→16→16），只用了两层卷积和两个池化层（图片尺寸同样是 32→16→8）。
+
+    分类头（classifier）：
+
+        特征图是 16通道 × 8 × 8，展平后的维度是 16 * 8 * 8 = 1024。
+
+        通过 nn.Linear(1024, 256)，再经过 Dropout，最后输出 10 类。
+
+> 展平操作 torch.flatten(x, 1):
+
+在 forward 函数里，经过 self.features(x) 之后，数据是一个四维张量 (Batch_size, Channels, Height, Width)。全连接层只接受二维数据，所以必须展平。
+
+torch.flatten(x, 1) 的意思是：保留第 0 维（也就是 Batch_size），把后面的通道、高、宽全部拉平成一维。
+
+DeepNN 拉平后长度是 2048。
+
+LightNN 拉平后长度是 1024。
+
+> 两个网络用了完全相同的激活函数和分类逻辑,这也是为了后续做知识蒸馏做准备。因为老师教学生的时候，通需要对比两者在最后输出层（Logits）上的差异。
+
+We employ 2 functions to help us produce and evaluate the results on our original classification task. 
+
+One function is called **`train`** and takes the following arguments:
+
+1. **model**: A model instance to train (update its weights) via this function.
+
+2. **train_loader**: We defined our `rain_loader` above, and its job is to feed the data into the model.
+
+3. **epochs**: How many times we loop over the dataset.
+
+4. **learning_rate**: The learning rate determines how large our steps towards convergence should be. Too large or too small steps can be detrimental.
+
+5. **device**: Determines the device to run the workload on. Can be either CPU or GPU depending on availability.
+
+```python
 def train(model, train_loader, epochs, learning_rate, device):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -223,11 +270,13 @@ def test(model, test_loader, device):
     accuracy = 100 * correct / total
     print(f"Test Accuracy: {accuracy:.2f}%")
     return accuracy
+```
 
-Cross-entropy runs
+## 交叉熵方法 Cross-entropy runs
 
-For reproducibility, we need to set the torch manual seed. We train networks using different methods, so to compare them fairly, it makes sense to initialize the networks with the same weights. Start by training the teacher network using cross-entropy:
+For reproducibility, we need to set the torch manual seed. We train networks using different methods, so to compare them fairly, it makes sense to initialize the networks **with the same weights**. Start by training the teacher network using cross-entropy:
 
+```python
 torch.manual_seed(42)
 nn_deep = DeepNN(num_classes=10).to(device)
 train(nn_deep, train_loader, epochs=10, learning_rate=0.001, device=device)
@@ -236,85 +285,127 @@ test_accuracy_deep = test(nn_deep, test_loader, device)
 # Instantiate the lightweight network:
 torch.manual_seed(42)
 nn_light = LightNN(num_classes=10).to(device)
+```
 
-Epoch 1/10, Loss: 1.3402419890589117
-Epoch 2/10, Loss: 0.8750469632770704
-Epoch 3/10, Loss: 0.6904185187938573
-Epoch 4/10, Loss: 0.5503143921989919
-Epoch 5/10, Loss: 0.43436161605903256
-Epoch 6/10, Loss: 0.3266873674090866
-Epoch 7/10, Loss: 0.24251676234595307
-Epoch 8/10, Loss: 0.18436567130905893
-Epoch 9/10, Loss: 0.1486253261451831
-Epoch 10/10, Loss: 0.13018484821404946
-Test Accuracy: 75.95%
+Out
 
-We instantiate one more lightweight network model to compare their performances. Back propagation is sensitive to weight initialization, so we need to make sure these two networks have the exact same initialization.
+```python
+Epoch 1/10, Loss: 1.3324644655522788
+Epoch 2/10, Loss: 0.8708866857506735
+Epoch 3/10, Loss: 0.6903234038816388
+Epoch 4/10, Loss: 0.5379468149998609
+Epoch 5/10, Loss: 0.4173577759424439
+Epoch 6/10, Loss: 0.31721441809783507
+Epoch 7/10, Loss: 0.2246860868828681
+Epoch 8/10, Loss: 0.16713004645979618
+Epoch 9/10, Loss: 0.14741274812604155
+Epoch 10/10, Loss: 0.11847115276605272
+Test Accuracy: 74.54%
+```
 
+> 和文章中的实验结果不同？
+
+在深度学习里，充满了随机性（Stochasticity）。即使代码完全没改，每次跑出来的准确率通常会上下浮动 1% ~ 3% 左右。主要原因有这四个：
+
+    权重初始化是随机的：神经网络刚创建时，所有的参数（权重和偏置）都是随机生成的（比如默认的正态分布）。不同的起点，模型最终落入的“局部最优解”是不同的。
+
+    数据打乱（shuffle=True）：你的 DataLoader 每次 Epoch 都会重新随机打乱 5 万张图片。模型每次看的顺序不同，学到的特征路径也会不同。
+
+    Dropout 层的随机性：你截图的模型里有 nn.Dropout(0.1)。每次前向传播时，它会随机“丢弃”10% 的神经元。这相当于每次都在训练一个结构稍微不同的子网络。
+
+    GPU 的底层计算误差：如果你用 GPU 训练，CUDA 底层的并行计算（比如矩阵乘法）在某些情况下无法保证绝对的数学确定性，可能会引入极微小的浮点误差，最终被放大。
+
+We instantiate one more lightweight network model to compare their performances. Back propagation is sensitive to weight initialization, so we need to make sure these two networks have the exact **same initialization**.
+
+```python
 torch.manual_seed(42)
 new_nn_light = LightNN(num_classes=10).to(device)
+```
 
 To ensure we have created a copy of the first network, we inspect the norm of its first layer. If it matches, then we are safe to conclude that the networks are indeed the same.
 
+```python
 # Print the norm of the first layer of the initial lightweight model
 print("Norm of 1st layer of nn_light:", torch.norm(nn_light.features[0].weight).item())
 # Print the norm of the first layer of the new lightweight model
 print("Norm of 1st layer of new_nn_light:", torch.norm(new_nn_light.features[0].weight).item())
+```
 
+Out
+
+```python
 Norm of 1st layer of nn_light: 2.327361822128296
 Norm of 1st layer of new_nn_light: 2.327361822128296
+```
 
-Print the total number of parameters in each model:
+**打印每个模型中参数的总数:**
 
+```python
 total_params_deep = "{:,}".format(sum(p.numel() for p in nn_deep.parameters()))
 print(f"DeepNN parameters: {total_params_deep}")
 total_params_light = "{:,}".format(sum(p.numel() for p in nn_light.parameters()))
 print(f"LightNN parameters: {total_params_light}")
+```
 
+Out
+
+```
 DeepNN parameters: 1,186,986
 LightNN parameters: 267,738
+```
 
-Train and test the lightweight network with cross entropy loss:
+**训练并测试具有交叉熵损失的轻量网络:**
 
+```python
 train(nn_light, train_loader, epochs=10, learning_rate=0.001, device=device)
 test_accuracy_light_ce = test(nn_light, test_loader, device)
+```
 
-Epoch 1/10, Loss: 1.47178493222922
-Epoch 2/10, Loss: 1.161160112494398
-Epoch 3/10, Loss: 1.033277612055659
-Epoch 4/10, Loss: 0.9318089953164006
-Epoch 5/10, Loss: 0.8590861127504608
-Epoch 6/10, Loss: 0.7922681675237768
-Epoch 7/10, Loss: 0.7296676448239084
-Epoch 8/10, Loss: 0.67418138953426
-Epoch 9/10, Loss: 0.623546598969823
-Epoch 10/10, Loss: 0.5764779898973987
-Test Accuracy: 70.19%
+Out
+
+```
+Epoch 1/10, Loss: 1.4684629473844757
+Epoch 2/10, Loss: 1.1556517544304927
+Epoch 3/10, Loss: 1.0252509245177364
+Epoch 4/10, Loss: 0.9241082334457456
+Epoch 5/10, Loss: 0.8479285933782378
+Epoch 6/10, Loss: 0.7787943416849121
+Epoch 7/10, Loss: 0.7136897055236885
+Epoch 8/10, Loss: 0.6535112059024899
+Epoch 9/10, Loss: 0.6033801174224795
+Epoch 10/10, Loss: 0.5528530050878939
+Test Accuracy: 69.96%
+```
 
 As we can see, based on test accuracy, we can now compare the deeper network that is to be used as a teacher with the lightweight network that is our supposed student. So far, our student has not intervened with the teacher, therefore this performance is achieved by the student itself. The metrics so far can be seen with the following lines:
 
+**指标对比（学生尚未被老师干预）：**
+
+```python
 print(f"Teacher accuracy: {test_accuracy_deep:.2f}%")
 print(f"Student accuracy: {test_accuracy_light_ce:.2f}%")
+```
 
-Teacher accuracy: 75.95%
-Student accuracy: 70.19%
+Out
 
-Knowledge distillation run
+```python
+Teacher accuracy: 74.54%
+Student accuracy: 69.96%
+```
+
+## Knowledge distillation run
 
 Now let’s try to improve the test accuracy of the student network by incorporating the teacher. Knowledge distillation is a straightforward technique to achieve this, based on the fact that both networks output a probability distribution over our classes. Therefore, the two networks share the same number of output neurons. The method works by incorporating an additional loss into the traditional cross entropy loss, which is based on the softmax output of the teacher network. The assumption is that the output activations of a properly trained teacher network carry additional information that can be leveraged by a student network during training. The original work suggests that utilizing ratios of smaller probabilities in the soft targets can help achieve the underlying objective of deep neural networks, which is to create a similarity structure over the data where similar objects are mapped closer together. For example, in CIFAR-10, a truck could be mistaken for an automobile or airplane, if its wheels are present, but it is less likely to be mistaken for a dog. Therefore, it makes sense to assume that valuable information resides not only in the top prediction of a properly trained model but in the entire output distribution. However, cross entropy alone does not sufficiently exploit this information as the activations for non-predicted classes tend to be so small that propagated gradients do not meaningfully change the weights to construct this desirable vector space.
 
 As we continue defining our first helper function that introduces a teacher-student dynamic, we need to include a few extra parameters:
 
-    T: Temperature controls the smoothness of the output distributions. Larger T leads to smoother distributions, thus smaller probabilities get a larger boost.
+1. **T**: Temperature controls the smoothness of the output distributions. Larger T leads to smoother distributions, thus smaller probabilities get a larger boost.
 
-    soft_target_loss_weight: A weight assigned to the extra objective we’re about to include.
+2. **soft_target_loss_weight**: A weight assigned to the extra objective we’re about to include.
 
-    ce_loss_weight: A weight assigned to cross-entropy. Tuning these weights pushes the network towards optimizing for either objective.
+3. **ce_loss_weight**: A weight assigned to cross-entropy. Tuning these weights pushes the network towards optimizing for either objective.
 
-../_static/img/knowledge_distillation/distillation_output_loss.png
-
-Distillation loss is calculated from the logits of the networks. It only returns gradients to the student:
-
+```python
 def train_knowledge_distillation(teacher, student, train_loader, epochs, learning_rate, T, soft_target_loss_weight, ce_loss_weight, device):
     ce_loss = nn.CrossEntropyLoss()
     optimizer = optim.Adam(student.parameters(), lr=learning_rate)
@@ -364,26 +455,28 @@ test_accuracy_light_ce_and_kd = test(new_nn_light, test_loader, device)
 print(f"Teacher accuracy: {test_accuracy_deep:.2f}%")
 print(f"Student accuracy without teacher: {test_accuracy_light_ce:.2f}%")
 print(f"Student accuracy with CE + KD: {test_accuracy_light_ce_and_kd:.2f}%")
+```
 
-Epoch 1/10, Loss: 2.3976951627170338
-Epoch 2/10, Loss: 1.8764679581308
-Epoch 3/10, Loss: 1.6501350893693811
-Epoch 4/10, Loss: 1.4919001007323984
-Epoch 5/10, Loss: 1.3612999608144736
-Epoch 6/10, Loss: 1.248378431553121
-Epoch 7/10, Loss: 1.15309934451452
-Epoch 8/10, Loss: 1.0717847322868874
-Epoch 9/10, Loss: 0.9928487306055815
-Epoch 10/10, Loss: 0.9201059237770413
-Test Accuracy: 70.36%
-Teacher accuracy: 75.95%
-Student accuracy without teacher: 70.19%
-Student accuracy with CE + KD: 70.36%
+```python
+Epoch 1/10, Loss: 2.368525334636269
+Epoch 2/10, Loss: 1.8519720012879433
+Epoch 3/10, Loss: 1.6284415977995108
+Epoch 4/10, Loss: 1.468683267188499
+Epoch 5/10, Loss: 1.3428366185759035
+Epoch 6/10, Loss: 1.2304401574537271
+Epoch 7/10, Loss: 1.135715493918075
+Epoch 8/10, Loss: 1.048583413938732
+Epoch 9/10, Loss: 0.9742893933335228
+Epoch 10/10, Loss: 0.90246815708897
+Test Accuracy: 70.63%
+Teacher accuracy: 74.54%
+Student accuracy without teacher: 69.96%
+Student accuracy with CE + KD: 70.63%
+```
 
-Cosine loss minimization run
+## Cosine loss minimization run
 
 Feel free to play around with the temperature parameter that controls the softness of the softmax function and the loss coefficients. In neural networks, it is easy to include additional loss functions to the main objectives to achieve goals like better generalization. Let’s try including an objective for the student, but now let’s focus on their hidden states rather than their output layers. Our goal is to convey information from the teacher’s representation to the student by including a naive loss function, whose minimization implies that the flattened vectors that are subsequently passed to the classifiers have become more similar as the loss decreases. Of course, the teacher does not update its weights, so the minimization depends only on the student’s weights. The rationale behind this method is that we are operating under the assumption that the teacher model has a better internal representation that is unlikely to be achieved by the student without external intervention, therefore we artificially push the student to mimic the internal representation of the teacher. Whether or not this will end up helping the student is not straightforward, though, because pushing the lightweight network to reach this point could be a good thing, assuming that we have found an internal representation that leads to better test accuracy, but it could also be harmful because the networks have different architectures and the student does not have the same learning capacity as the teacher. In other words, there is no reason for these two vectors, the student’s and the teacher’s to match per component. The student could reach an internal representation that is a permutation of the teacher’s and it would be just as efficient. Nonetheless, we can still run a quick experiment to figure out the impact of this method. We will be using the CosineEmbeddingLoss which is given by the following formula:
-../_static/img/knowledge_distillation/cosine_embedding_loss.png
 
 Formula for CosineEmbeddingLoss
 
@@ -391,6 +484,7 @@ Obviously, there is one thing that we need to resolve first. When we applied dis
 
 To proceed, we will modify our model classes, or create new ones. Now, the forward function returns not only the logits of the network but also the flattened hidden representation after the convolutional layer. We include the aforementioned pooling for the modified teacher.
 
+```python
 class ModifiedDeepNNCosine(nn.Module):
     def __init__(self, num_classes=10):
         super(ModifiedDeepNNCosine, self).__init__()
@@ -457,13 +551,17 @@ print("Norm of 1st layer for modified_deep_nn:", torch.norm(modified_nn_deep.fea
 torch.manual_seed(42)
 modified_nn_light = ModifiedLightNNCosine(num_classes=10).to(device)
 print("Norm of 1st layer:", torch.norm(modified_nn_light.features[0].weight).item())
+```
 
-Norm of 1st layer for deep_nn: 7.508059024810791
-Norm of 1st layer for modified_deep_nn: 7.508059024810791
+```python
+Norm of 1st layer for deep_nn: 7.493465423583984
+Norm of 1st layer for modified_deep_nn: 7.493465423583984
 Norm of 1st layer: 2.327361822128296
+```
 
 Naturally, we need to change the train loop because now the model returns a tuple (logits, hidden_representation). Using a sample input tensor we can print their shapes.
 
+```python
 # Create a sample input tensor
 sample_input = torch.randn(128, 3, 32, 32).to(device) # Batch size: 128, Filters: 3, Image size: 32x32
 
@@ -480,17 +578,20 @@ logits, hidden_representation = modified_nn_deep(sample_input)
 # Print the shapes of the tensors
 print("Teacher logits shape:", logits.shape) # batch_size x total_classes
 print("Teacher hidden representation shape:", hidden_representation.shape) # batch_size x hidden_representation_size
+```
 
+```python
 Student logits shape: torch.Size([128, 10])
 Student hidden representation shape: torch.Size([128, 1024])
 Teacher logits shape: torch.Size([128, 10])
 Teacher hidden representation shape: torch.Size([128, 1024])
+```
 
 In our case, hidden_representation_size is 1024. This is the flattened feature map of the final convolutional layer of the student and as you can see, it is the input for its classifier. It is 1024 for the teacher too, because we made it so with avg_pool1d from 2048. The loss applied here only affects the weights of the student prior to the loss calculation. In other words, it does not affect the classifier of the student. The modified training loop is the following:
-../_static/img/knowledge_distillation/cosine_loss_distillation.png
 
 In Cosine Loss minimization, we want to maximize the cosine similarity of the two representations by returning gradients to the student:
 
+```python
 def train_cosine_loss(teacher, student, train_loader, epochs, learning_rate, hidden_rep_loss_weight, ce_loss_weight, device):
     ce_loss = nn.CrossEntropyLoss()
     cosine_loss = nn.CosineEmbeddingLoss()
@@ -530,9 +631,11 @@ def train_cosine_loss(teacher, student, train_loader, epochs, learning_rate, hid
             running_loss += loss.item()
 
         print(f"Epoch {epoch+1}/{epochs}, Loss: {running_loss / len(train_loader)}")
+```
 
 We need to modify our test function for the same reason. Here we ignore the hidden representation returned by the model.
 
+```python
 def test_multiple_outputs(model, test_loader, device):
     model.to(device)
     model.eval()
@@ -553,29 +656,37 @@ def test_multiple_outputs(model, test_loader, device):
     accuracy = 100 * correct / total
     print(f"Test Accuracy: {accuracy:.2f}%")
     return accuracy
+```
 
 In this case, we could easily include both knowledge distillation and cosine loss minimization in the same function. It is common to combine methods to achieve better performance in teacher-student paradigms. For now, we can run a simple train-test session.
 
+```python
 # Train and test the lightweight network with cross entropy loss
 train_cosine_loss(teacher=modified_nn_deep, student=modified_nn_light, train_loader=train_loader, epochs=10, learning_rate=0.001, hidden_rep_loss_weight=0.25, ce_loss_weight=0.75, device=device)
 test_accuracy_light_ce_and_cosine_loss = test_multiple_outputs(modified_nn_light, test_loader, device)
+```
 
-Epoch 1/10, Loss: 1.3028146568161751
-Epoch 2/10, Loss: 1.070170956956761
-Epoch 3/10, Loss: 0.9739999765020502
-Epoch 4/10, Loss: 0.8988968790949458
-Epoch 5/10, Loss: 0.8435268081972361
-Epoch 6/10, Loss: 0.7973372358495318
-Epoch 7/10, Loss: 0.7562573074989611
-Epoch 8/10, Loss: 0.7174529841793772
-Epoch 9/10, Loss: 0.6807396796048449
-Epoch 10/10, Loss: 0.6537569389318871
-Test Accuracy: 71.37%
+Out
 
-Intermediate regressor run
+```python
+Epoch 1/10, Loss: 1.306798359317243
+Epoch 2/10, Loss: 1.0764028016868454
+Epoch 3/10, Loss: 0.9782528128770306
+Epoch 4/10, Loss: 0.9029897430058941
+Epoch 5/10, Loss: 0.8479770197892738
+Epoch 6/10, Loss: 0.8029736768254234
+Epoch 7/10, Loss: 0.7589672209356751
+Epoch 8/10, Loss: 0.7231402253860708
+Epoch 9/10, Loss: 0.6870624677604421
+Epoch 10/10, Loss: 0.6581869998856273
+Test Accuracy: 71.16%
+```
+
+## Intermediate regressor run
 
 Our naive minimization does not guarantee better results for several reasons, one being the dimensionality of the vectors. Cosine similarity generally works better than Euclidean distance for vectors of higher dimensionality, but we were dealing with vectors with 1024 components each, so it is much harder to extract meaningful similarities. Furthermore, as we mentioned, pushing towards a match of the hidden representation of the teacher and the student is not supported by theory. There are no good reasons why we should be aiming for a 1:1 match of these vectors. We will provide a final example of training intervention by including an extra network called regressor. The objective is to first extract the feature map of the teacher after a convolutional layer, then extract a feature map of the student after a convolutional layer, and finally try to match these maps. However, this time, we will introduce a regressor between the networks to facilitate the matching process. The regressor will be trainable and ideally will do a better job than our naive cosine loss minimization scheme. Its main job is to match the dimensionality of these feature maps so that we can properly define a loss function between the teacher and the student. Defining such a loss function provides a teaching “path,” which is basically a flow to back-propagate gradients that will change the student’s weights. Focusing on the output of the convolutional layers right before each classifier for our original networks, we have the following shapes:
 
+```python
 # Pass the sample input only from the convolutional feature extractor
 convolutional_fe_output_student = nn_light.features(sample_input)
 convolutional_fe_output_teacher = nn_deep.features(sample_input)
@@ -583,15 +694,20 @@ convolutional_fe_output_teacher = nn_deep.features(sample_input)
 # Print their shapes
 print("Student's feature extractor output shape: ", convolutional_fe_output_student.shape)
 print("Teacher's feature extractor output shape: ", convolutional_fe_output_teacher.shape)
+```
 
+Out
+
+```python
 Student's feature extractor output shape:  torch.Size([128, 16, 8, 8])
 Teacher's feature extractor output shape:  torch.Size([128, 32, 8, 8])
+```
 
 We have 32 filters for the teacher and 16 filters for the student. We will include a trainable layer that converts the feature map of the student to the shape of the feature map of the teacher. In practice, we modify the lightweight class to return the hidden state after an intermediate regressor that matches the sizes of the convolutional feature maps and the teacher class to return the output of the final convolutional layer without pooling or flattening.
-../_static/img/knowledge_distillation/fitnets_knowledge_distill.png
 
 The trainable layer matches the shapes of the intermediate tensors and Mean Squared Error (MSE) is properly defined:
 
+```python
 class ModifiedDeepNNRegressor(nn.Module):
     def __init__(self, num_classes=10):
         super(ModifiedDeepNNRegressor, self).__init__()
@@ -649,9 +765,11 @@ class ModifiedLightNNRegressor(nn.Module):
         x = torch.flatten(x, 1)
         x = self.classifier(x)
         return x, regressor_output
+```
 
 After that, we have to update our train loop again. This time, we extract the regressor output of the student, the feature map of the teacher, we calculate the MSE on these tensors (they have the exact same shape so it’s properly defined) and we back propagate gradients based on that loss, in addition to the regular cross entropy loss of the classification task.
 
+```python
 def train_mse_loss(teacher, student, train_loader, epochs, learning_rate, feature_map_weight, ce_loss_weight, device):
     ce_loss = nn.CrossEntropyLoss()
     mse_loss = nn.MSELoss()
@@ -705,41 +823,42 @@ modified_nn_deep_reg.load_state_dict(nn_deep.state_dict())
 # Train and test once again
 train_mse_loss(teacher=modified_nn_deep_reg, student=modified_nn_light_reg, train_loader=train_loader, epochs=10, learning_rate=0.001, feature_map_weight=0.25, ce_loss_weight=0.75, device=device)
 test_accuracy_light_ce_and_mse_loss = test_multiple_outputs(modified_nn_light_reg, test_loader, device)
+```
 
-Epoch 1/10, Loss: 1.7279015239852165
-Epoch 2/10, Loss: 1.350230515460529
-Epoch 3/10, Loss: 1.2037063009293794
-Epoch 4/10, Loss: 1.1060025809366074
-Epoch 5/10, Loss: 1.0252397962848243
-Epoch 6/10, Loss: 0.9623387152581568
-Epoch 7/10, Loss: 0.9084924910684375
-Epoch 8/10, Loss: 0.8587091839526926
-Epoch 9/10, Loss: 0.817440721232568
-Epoch 10/10, Loss: 0.7842164673768651
-Test Accuracy: 70.77%
+Out
+
+```python
+Epoch 1/10, Loss: 1.6890651789467659
+Epoch 2/10, Loss: 1.31339025741343
+Epoch 3/10, Loss: 1.1697968727792316
+Epoch 4/10, Loss: 1.0727734683114853
+Epoch 5/10, Loss: 0.9939984606050164
+Epoch 6/10, Loss: 0.9305637527609725
+Epoch 7/10, Loss: 0.8756104726010882
+Epoch 8/10, Loss: 0.827191528152017
+Epoch 9/10, Loss: 0.7833019546840502
+Epoch 10/10, Loss: 0.7460303509326847
+Test Accuracy: 71.32%
+```
 
 It is expected that the final method will work better than CosineLoss because now we have allowed a trainable layer between the teacher and the student, which gives the student some wiggle room when it comes to learning, rather than pushing the student to copy the teacher’s representation. Including the extra network is the idea behind hint-based distillation.
 
+```python
 print(f"Teacher accuracy: {test_accuracy_deep:.2f}%")
 print(f"Student accuracy without teacher: {test_accuracy_light_ce:.2f}%")
 print(f"Student accuracy with CE + KD: {test_accuracy_light_ce_and_kd:.2f}%")
 print(f"Student accuracy with CE + CosineLoss: {test_accuracy_light_ce_and_cosine_loss:.2f}%")
 print(f"Student accuracy with CE + RegressorMSE: {test_accuracy_light_ce_and_mse_loss:.2f}%")
+```
 
-Teacher accuracy: 75.95%
-Student accuracy without teacher: 70.19%
-Student accuracy with CE + KD: 70.36%
-Student accuracy with CE + CosineLoss: 71.37%
-Student accuracy with CE + RegressorMSE: 70.77%
+```pythom
+Teacher accuracy: 74.54%
+Student accuracy without teacher: 69.96%
+Student accuracy with CE + KD: 70.63%
+Student accuracy with CE + CosineLoss: 71.16%
+Student accuracy with CE + RegressorMSE: 71.32%
+```
 
 Conclusion
 
 None of the methods above increases the number of parameters for the network or inference time, so the performance increase comes at the little cost of calculating gradients during training. In ML applications, we mostly care about inference time because training happens before the model deployment. If our lightweight model is still too heavy for deployment, we can apply different ideas, such as post-training quantization. Additional losses can be applied in many tasks, not just classification, and you can experiment with quantities like coefficients, temperature, or number of neurons. Feel free to tune any numbers in the tutorial above, but keep in mind, if you change the number of neurons / filters chances are a shape mismatch might occur.
-
-For more information, see:
-
-    Hinton, G., Vinyals, O., Dean, J.: Distilling the knowledge in a neural network. In: Neural Information Processing System Deep Learning Workshop (2015)
-
-    Romero, A., Ballas, N., Kahou, S.E., Chassang, A., Gatta, C., Bengio, Y.: Fitnets: Hints for thin deep nets. In: Proceedings of the International Conference on Learning Representations (2015)
-
-Total running time of the script: (21 minutes 39.492 seconds)
