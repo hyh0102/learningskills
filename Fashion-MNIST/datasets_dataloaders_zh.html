@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>数据集与数据加载器 · Datasets &amp; DataLoaders（中文精读）</title>
+<style>
+  :root{
+    --bg:#fbfaf7;
+    --paper:#ffffff;
+    --ink:#1f2328;
+    --ink-2:#4a5158;
+    --ink-3:#6b737b;
+    --line:#e6e2d9;
+    --accent:#c2410c;
+    --accent-soft:#fdf0e7;
+    --blue:#1d4ed8;
+    --blue-soft:#eef3ff;
+    --green:#15803d;
+    --green-soft:#eefaf1;
+    --amber:#92400e;
+    --amber-soft:#fff8e6;
+    --code-bg:#1c2128;
+    --code-ink:#e6edf3;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,"Courier New",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:var(--sans);font-size:16.5px;line-height:1.85;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 96px}
+
+  /* ---------- header ---------- */
+  header.top{
+    padding:56px 0 34px;border-bottom:1px solid var(--line);margin-bottom:34px;
+  }
+  .eyebrow{
+    font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--accent);font-weight:700;margin-bottom:14px;
+  }
+  h1{
+    font-size:clamp(30px,5vw,42px);line-height:1.25;margin:0 0 12px;
+    letter-spacing:-.01em;font-weight:800;
+  }
+  h1 .en{display:block;font-size:.46em;font-weight:600;color:var(--ink-3);letter-spacing:0;margin-top:8px}
+  .sub{color:var(--ink-2);font-size:17px;margin:0 0 20px}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:13.5px;color:var(--ink-3)}
+  .meta b{color:var(--ink-2);font-weight:600}
+  .meta a{color:var(--blue);text-decoration:none;border-bottom:1px solid rgba(29,78,216,.25)}
+
+  /* ---------- toc ---------- */
+  nav.toc{
+    background:var(--paper);border:1px solid var(--line);border-radius:14px;
+    padding:18px 22px;margin:0 0 42px;box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  nav.toc h2{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0 0 10px;font-weight:700}
+  nav.toc ol{margin:0;padding-left:1.3em;columns:2;column-gap:32px}
+  @media(max-width:620px){nav.toc ol{columns:1}}
+  nav.toc li{margin:3px 0;break-inside:avoid}
+  nav.toc a{color:var(--ink-2);text-decoration:none;font-size:14.5px}
+  nav.toc a:hover{color:var(--accent)}
+
+  /* ---------- headings ---------- */
+  h2.sec{
+    font-size:26px;line-height:1.35;margin:62px 0 8px;font-weight:800;letter-spacing:-.01em;
+    scroll-margin-top:24px;padding-top:10px;
+  }
+  h2.sec .num{color:var(--accent);font-weight:800;margin-right:10px;font-variant-numeric:tabular-nums}
+  h2.sec .en{display:block;font-size:14px;font-weight:600;color:var(--ink-3);letter-spacing:0;margin-top:4px}
+  h3.sub{
+    font-size:20px;margin:40px 0 6px;font-weight:700;scroll-margin-top:24px;
+  }
+  h3.sub code{font-size:.9em}
+  .rule{height:1px;background:linear-gradient(90deg,var(--line),transparent);margin:0 0 22px}
+
+  p{margin:0 0 18px}
+  a{color:var(--blue)}
+  strong{font-weight:700}
+  code{
+    font-family:var(--mono);font-size:.88em;background:#efece4;color:#7c2d12;
+    padding:.1em .3em;border-radius:4px;
+    overflow-wrap:anywhere;
+  }
+  .lead{font-size:17.5px;color:var(--ink-2)}
+
+  /* ---------- code ---------- */
+  .code{
+    position:relative;margin:0 0 20px;border-radius:12px;overflow:hidden;
+    background:var(--code-bg);box-shadow:0 2px 10px rgba(20,25,35,.14);
+  }
+  .code .bar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:8px 14px;background:#141920;border-bottom:1px solid #2b323c;
+  }
+  .code .bar .dot{display:inline-flex;gap:6px}
+  .code .bar .dot i{width:9px;height:9px;border-radius:50%;display:block}
+  .code .bar .dot i:nth-child(1){background:#ff5f57}
+  .code .bar .dot i:nth-child(2){background:#febc2e}
+  .code .bar .dot i:nth-child(3){background:#28c840}
+  .code .bar .lang{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:#8b949e;font-weight:600}
+  .code pre{
+    margin:0;padding:18px 20px;overflow-x:auto;
+    font-family:var(--mono);font-size:13.6px;line-height:1.68;color:var(--code-ink);
+    tab-size:4;
+  }
+  .code pre code{background:none;color:inherit;padding:0;font-size:inherit;white-space:pre}
+  .out pre{color:#b9c4cf}
+  /* simple token colors */
+  .tok-kw{color:#ff7b72;font-weight:600}
+  .tok-str{color:#a5d6ff}
+  .tok-com{color:#8b949e;font-style:italic}
+  .tok-num{color:#79c0ff}
+  .tok-fn{color:#d2a8ff}
+  .tok-op{color:#ffa657}
+
+  /* ---------- images ---------- */
+  figure{margin:26px 0 30px;text-align:center}
+  figure img{
+    max-width:100%;height:auto;border-radius:10px;
+    border:1px solid var(--line);background:#fff;padding:8px;
+    box-shadow:0 2px 12px rgba(0,0,0,.05);
+  }
+  figure figcaption{font-size:13.5px;color:var(--ink-3);margin-top:10px}
+
+  /* ---------- 解读 boxes ---------- */
+  .note{
+    position:relative;margin:26px 0;padding:20px 22px 16px 22px;
+    background:var(--blue-soft);border:1px solid #dbe4ff;border-left:4px solid var(--blue);
+    border-radius:10px;
+  }
+  .note.warn{background:var(--amber-soft);border-color:#f2e2b8;border-left-color:#d97706}
+  .note.green{background:var(--green-soft);border-color:#cdeed8;border-left-color:var(--green)}
+  .note > .label{
+    display:inline-flex;align-items:center;gap:7px;
+    font-size:12.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--blue);margin-bottom:8px;
+  }
+  .note.warn > .label{color:var(--amber)}
+  .note.green > .label{color:var(--green)}
+  .note > .label::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+  .note h4{margin:10px 0 6px;font-size:15.5px;font-weight:700;color:var(--ink)}
+  .note p{margin:0 0 10px;font-size:15.2px;line-height:1.8;color:#2c333a}
+  .note ul,.note ol{margin:6px 0 12px;padding-left:1.35em}
+  .note li{margin:5px 0;font-size:15.2px;line-height:1.75;color:#2c333a}
+  .note code{background:#dbe4ff;color:#1e3a8a}
+  .note.warn code{background:#fbe9c9;color:#7c2d12}
+  .note.green code{background:#d3f0dc;color:#14532d}
+
+  /* ---------- tables ---------- */
+  .tbl{max-width:100%;overflow-x:auto;margin:22px 0 26px}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;background:var(--paper)}
+  caption{caption-side:top;text-align:left;font-size:13px;color:var(--ink-3);padding-bottom:8px}
+  th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+  th{background:#f4f1ea;font-weight:700;font-size:13.7px;color:var(--ink)}
+  tbody tr:nth-child(even){background:#fcfbf8}
+
+  /* ---------- misc ---------- */
+  .hint{
+    font-size:13.5px;color:var(--ink-3);border-top:1px dashed var(--line);
+    margin-top:14px;padding-top:10px;
+  }
+  .kbd{font-family:var(--mono);font-size:.85em;background:#fff;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:.05em .35em}
+  footer.end{
+    margin-top:70px;padding-top:22px;border-top:1px solid var(--line);
+    font-size:13.5px;color:var(--ink-3);
+  }
+  .tag{
+    display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.06em;
+    background:var(--accent-soft);color:var(--accent);border-radius:999px;
+    padding:2px 9px;margin-left:8px;vertical-align:middle;
+  }
+  @media print{
+    body{background:#fff}
+    .code{box-shadow:none;border:1px solid #ccc}
+    nav.toc{display:none}
+    h2.sec{page-break-after:avoid}
+    .note{page-break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="eyebrow">PyTorch 官方教程 · 中文精读</div>
+  <h1>数据集与数据加载器
+    <span class="en">Datasets &amp; DataLoaders</span>
+  </h1>
+  <p class="sub">原文逐段翻译，每一节后附一段「解读」：讲清这段代码在做什么、为什么这样设计、哪里容易踩坑。</p>
+  <div class="meta">
+    <span><b>原文</b> <a href="https://docs.pytorch.org/tutorials/beginner/basics/data_tutorial.html" target="_blank" rel="noopener">docs.pytorch.org · beginner/basics/data_tutorial</a></span>
+    <span><b>原文更新</b> 2026-05-07</span>
+    <span><b>中文版整理</b> 2026-11-17</span>
+  </div>
+</header>
+
+<nav class="toc" aria-label="目录">
+  <h2>目录</h2>
+  <ol>
+    <li><a href="#intro">写在前面：Dataset 与 DataLoader</a></li>
+    <li><a href="#load">加载一个数据集</a></li>
+    <li><a href="#iterate">遍历与可视化数据集</a></li>
+    <li><a href="#custom">为你的文件创建自定义数据集</a></li>
+    <li><a href="#init">__init__</a></li>
+    <li><a href="#len">__len__</a></li>
+    <li><a href="#getitem">__getitem__</a></li>
+    <li><a href="#dataloader">用 DataLoader 为训练准备数据</a></li>
+    <li><a href="#iter-loader">遍历 DataLoader</a></li>
+    <li><a href="#reading">延伸阅读</a></li>
+    <li><a href="#cheatsheet">附：速查表与常见陷阱</a></li>
+  </ol>
+</nav>
+
+<!-- ============================================================ -->
+<section id="intro">
+  <h2 class="sec"><span class="num">01</span>写在前面：Dataset 与 DataLoader
+    <span class="en">Why two primitives?</span>
+  </h2>
+  <div class="rule"></div>
+
+  <p class="lead">处理数据样本的代码很容易变得杂乱、难以维护。理想情况下，我们希望把<strong>数据集代码</strong>与<strong>模型训练代码</strong>解耦，以获得更好的可读性和模块化。</p>
+
+  <p>PyTorch 提供了两个数据原语：<code>torch.utils.data.DataLoader</code> 与 <code>torch.utils.data.Dataset</code>，它们让你既能使用预加载好的数据集，也能使用自己的数据。<code>Dataset</code> 存储样本及其对应的标签，<code>DataLoader</code> 则在 <code>Dataset</code> 之上包装出一个可迭代对象，从而轻松访问样本。</p>
+
+  <p>PyTorch 的领域库提供了许多预加载数据集（例如 FashionMNIST），它们继承 <code>torch.utils.data.Dataset</code>，并针对特定数据实现了相应函数。你可以用它们来快速做原型设计和基准测试。可以在这里找到它们：<a href="https://pytorch.org/vision/stable/datasets.html" target="_blank" rel="noopener">图像数据集</a>、<a href="https://pytorch.org/text/stable/datasets.html" target="_blank" rel="noopener">文本数据集</a> 和 <a href="https://pytorch.org/audio/stable/datasets.html" target="_blank" rel="noopener">音频数据集</a>。</p>
+
+  <div class="note">
+    <div class="label">解读 01 · 两个原语，各管一段</div>
+    <p><strong>Dataset 回答“数据在哪、第 i 个是什么”，DataLoader 回答“怎么成批、按什么顺序、用几个进程取”。</strong>把这两件事拆开，是 PyTorch 数据管道设计的核心：训练循环只依赖 <code>DataLoader</code> 的迭代协议（<code>for X, y in loader</code>），于是换数据集不需要改动模型代码，换模型也不需要改动数据处理代码。</p>
+    <h4>一条完整的数据流水线</h4>
+    <ul>
+      <li><strong>Dataset</strong>：按索引取单个样本，返回 <code>(特征, 标签)</code>，并在这里挂上 transform。</li>
+      <li><strong>Sampler</strong>：决定这一轮按什么顺序取索引 —— <code>shuffle=True</code> 就是随机顺序。</li>
+      <li><strong>DataLoader</strong>：把 Sampler 给出的索引切成 batch，交给若干 worker 并行取数据，再用 <code>collate_fn</code> 把样本列表拼成 batch 张量。</li>
+    </ul>
+    <p>一个容易记住的类比：<code>Dataset</code> 像一个列表（能 <code>len()</code>、能 <code>[i]</code>），<code>DataLoader</code> 像“for 循环 + 打包机”。此后 <code>Dataset</code> 只是 <code>DataLoader</code> 的内部零件，你的训练代码基本只跟 <code>DataLoader</code> 打交道。</p>
+    <p>顺带区分两个同样常被混淆的概念：<code>map-style</code> 数据集（实现 <code>__len__</code> 与 <code>__getitem__</code>，可随机索引，本文这类）与 <code>IterableDataset</code>（实现 <code>__iter__</code>，只能顺序读取，适合日志流、超大数据、无法随机访问的场景）。</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="load">
+  <h2 class="sec"><span class="num">02</span>加载一个数据集
+    <span class="en">Loading a Dataset</span>
+  </h2>
+  <div class="rule"></div>
+
+  <p>下面是从 TorchVision 加载 Fashion-MNIST 数据集的示例。Fashion-MNIST 是一个由 Zalando 的商品图片构成的数据集，包含 60,000 个训练样本和 10,000 个测试样本。每个样本由一张 28×28 的灰度图像，以及一个来自 10 个类别之一的标签组成。</p>
+
+  <p>我们用以下参数加载 FashionMNIST 数据集：<code>root</code> 是训练/测试数据存储的路径，<code>train</code> 指定加载训练集还是测试集，<code>download=True</code> 表示如果 <code>root</code> 下没有数据就从互联网下载，<code>transform</code> 与 <code>target_transform</code> 分别指定特征和标签的变换。</p>
+
+  <div class="code">
+    <div class="bar"><span class="dot"><i></i><i></i><i></i></span><span class="lang">Python</span></div>
+<pre><code>import torch
+from torch.utils.data import Dataset
+from torchvision import datasets
+from torchvision.transforms import v2
+import matplotlib.pyplot as plt
+
+
+training_data = datasets.FashionMNIST(
+    root="data",
+    train=True,
+    download=True,
+    transform=v2.Compose([v2.ToImage(), v2.ToDtype(torch.float32, scale=True)])
+)
+
+test_data = datasets.FashionMNIST(
+    root="data",
+    train=False,
+    download=True,
+    transform=v2.Compose([v2.ToImage(), v2.ToDtype(torch.float32, scale=True)])
+)</code></pre>
+  </div>
+
+  <p>首次运行时，你会看到如下下载进度（来自 <code>tqdm</code>）：</p>
+
+  <div class="code out">
+    <div class="bar"><span class="dot"><i></i><i></i><i></i></span><span class="lang">输出</span></div>
+<pre> 13%|█▎        | 3.34M/26.4M [00:01&lt;00:04, 5.56MB/s]
+ 55%|█████▍    | 14.5M/26.4M [00:01&lt;00:00, 19.9MB/s]
+100%|██████████| 26.4M/26.4M [00:02&lt;00:00, 12.3MB/s]
+...（测试集与元数据文件，略）</pre>
+  </div>
+  <p class="hint">原文完整输出里还包含 4.42M 的测试集与若干小文件（约 29.5k、5.15k）的下载进度，这里为可读性做了省略。</p>
+
+  <div class="note">
+    <div class="label">解读 02 · 四行参数背后的机制</div>
+    <h4>1）transform 是一条流水线，顺序不能反</h4>
+    <p><code>v2.Compose([v2.ToImage(), v2.ToDtype(torch.float32, scale=True)])</code> 做了两件事：</p>
+    <ul>
+      <li><code>ToImage()</code>：把 PIL 图像或 NumPy 数组变成 <strong>uint8 的 CHW 张量</strong>（通道在前，取值 0–255）。</li>
+      <li><code>ToDtype(torch.float32, scale=True)</code>：转成 <code>float32</code>，并把 0–255 线性映射到 0–1。</li>
+    </ul>
+    <p>必须先用 <code>ToImage()</code>：<code>ToDtype</code> 期望输入已经是张量。归一化到 [0,1] 并非理论上的必需，但能让激活值和梯度处在更稳定的量级，对后面训练更友好。旧教程里的 <code>transforms.ToTensor()</code> 大致等价于这两步的组合；<code>v2</code> 是 torchvision 0.15 之后推荐的新写法，好处是变换可以作用在张量上、且能保留更多元信息（如视频、mask）。</p>
+    <h4>2）download 的真实行为</h4>
+    <p>数据会被下载到 <code>data/FashionMNIST/raw/</code>，并做校验；文件已存在且完整时会<strong>跳过下载</strong>。所以第二次运行时那一大段进度条不会再出现。26.4M 是训练集压缩包，4.42M 是测试集。</p>
+    <h4>3）两个容易忽略的坑</h4>
+    <ul>
+      <li><code>root="data"</code> 是<strong>相对当前工作目录</strong>，不是相对脚本文件。换个目录启动脚本就会重新下载一遍。稳妥写法：<code>root = Path(__file__).parent / "data"</code>。</li>
+      <li><code>train=True</code> 和 <code>train=False</code> 两个对象共享同一个 <code>root</code>，它们各自独立做文件检查；这不是重复下载，但会让你误以为下载了两份。</li>
+    </ul>
+    <p>另外，<code>transform</code> 只作用于图像，<code>target_transform</code> 只作用于标签 —— 这两个参数在很多自定义数据集里都会被写错位置，后面第 04 节还会遇到。</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="iterate">
+  <h2 class="sec"><span class="num">03</span>遍历与可视化数据集
+    <span class="en">Iterating and Visualizing the Dataset</span>
+  </h2>
+  <div class="rule"></div>
+
+  <p>我们可以像操作列表一样手动索引数据集：<code>training_data[index]</code>。下面用 matplotlib 可视化训练数据中的一些样本。</p>
+
+  <div class="code">
+    <div class="bar"><span class="dot"><i></i><i></i><i></i></span><span class="lang">Python</span></div>
+<pre><code>labels_map = {
+    0: "T-Shirt",
+    1: "Trouser",
+    2: "Pullover",
+    3: "Dress",
+    4: "Coat",
+    5: "Sandal",
+    6: "Shirt",
+    7: "Sneaker",
+    8: "Bag",
+    9: "Ankle Boot",
+}
+figure = plt.figure(figsize=(8, 8))
+cols, rows = 3, 3
+for i in range(1, cols * rows + 1):
+    sample_idx = torch.randint(len(training_data), size=(1,)).item()
+    img, label = training_data[sample_idx]
+    figure.add_subplot(rows, cols, i)
+    plt.title(labels_map[label])
+    plt.axis("off")
+    plt.imshow(img.squeeze(), cmap="gray")
+plt.show()</code></pre>
+  </div>
+
+  <figure>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAyAAAAMgCAYAAADbcAZoAAAAOnRFWHRTb2Z0d2FyZQBNYXRwbG90bGliIHZlcnNpb24zLjExLjIsIGh0dHBzOi8vbWF0cGxvdGxpYi5vcmcvgI3uAAAAAAlwSFlzAAAPYQAAD2EBqD+naQAAcNdJREFUeJzt3Xd8lfX9//9nCBkkIQQSAgkbIsuFIG7FBVpHxSJV68TVuuvAflqto1axjqrVWq11tVqxilKtC6VuQRkCIoZVWTITyJ4k5/eHX/JrzPv1LucQ3kngcb/devt8fF3ndV3XOTnv6/DKlTwTF4lEIgIAAACAANq19AkAAAAA2H0wgAAAAAAIhgEEAAAAQDAMIAAAAACCYQABAAAAEAwDCAAAAIBgGEAAAAAABMMAAgAAACAYBhAAAAAAwTCAAAAAAAiGAQQAAABAMAwgAAAAAIJhAAEAAAAQDAMIAAAAgGAYQAAAAAAEwwACAAAAIBgGEAAAAADBMIAAAAAACIYBBAAAAEAwDCAAAAAAgmEAAQAAABAMAwgAAACAYBhAAAAAAATDAAIAAAAgGAYQAAAAAMEwgAAAAAAIhgEEAAAAQDAMIAAAAACCYQABAAAAEAwDCAAAAIBgGEAAAAAABMMAAgAAACAYBhAAAAAAwTCAAAAAAAiGAQQAAABAMAwgAAAAAIJhAAEAAAAQDAMIAAAAgGAYQAAAAAAEwwACAAAAIBgGEAAAAADBMIAAAAAACIYBBAAAAEAwDCAAAAAAgmEAAQAAABAMAwgAAACAYBhAAAAAAATDAAIAAAAgGAYQAAAAAMEwgAAAAAAIhgEEAAAAQDAMIAAAAACCYQABAAAAEAwDCAAAAIBgGEAAAAAABMMAAgAAACAYBhAAAAAAwTCAAAAAAAiGAQQAAABAMAwgAAAAAIJhAAEAAAAQDAMIAAAAgGAYQAAAAAAEwwACAAAAIBgGEAAAAADBMIAAAAAACIYBBAAAAEAwDCAAAAAAgmEAAQAAABAMAwgAAACAYBhAAAAAAATDAAIAAAAgGAYQAAAAAMEwgAAe+fn5eumll1RXV9fSpwIAQLNYsmSJXnrpJdXU1ETdO3/+fE2dOrX5Twq7lfYtfQLYvRUXF2vx4sXatGmTevfurYEDByopKamlT6vBSy+9pF//+tcqLS1VWlpaS58O0GKKioo0f/58lZSUqHv37urfv78yMzN36jFfe+015ebmasSIETv1OMDOtmnTJi1dulTFxcXq16+f9thjD8XHx7fY+bz66quaOHGiNm3apKysrKh6n3rqKf3lL39RWVnZTjo77A64A4IWUVtbq4kTJyo3N1fnn3++HnnkEY0bN065ubm69tprVVtb29KnCEDSf/7zH40dO1bZ2dm67rrr9Pjjj+uyyy5Tt27d9IMf/EDz5s3baceeMGGC/vSnP+20/QM7W3FxsSZMmKAePXroyiuv1MMPP6zRo0erb9++mjRpUkufHtBiGEDQIm6++Wbde++9euyxx7Ro0SK9/vrrWrJkiR5++GE98cQTKi8vb+lTBHZ7ixYt0v77769169Zp0aJFmj17tl599VXNmjVL+fn5qqys1LvvvtvSpwm0WhdddJGef/55vfPOO5ozZ45ef/11rVixQtddd50eeuihlj49oMXwI1hoEVOmTFFeXp7OPvvsRvUzzzxTgwYNUmJiYkMtPz9fCxcu1Kmnnqr6+np9+umnqqys1IEHHqjOnTs7919dXa3Zs2ersLBQPXv21H777ae4uLiG7d9++61mzJghSYqLi1NqaqqGDh2q3r17b9f5f/HFF1q+fLlGjhypPn36NNSXLFmipUuXKikpSQcccIDS09MbttXU1OjVV1/VPvvso4EDB2rp0qX6+uuvNWzYsO0+LhDSOeeco/bt2+uNN95o8uNWeXl5mjZtmr788ssmfV9++aVWrFih9PR07b///kpNTW20/d///rc2b94sSWrfvr2ys7M1fPhwJScnS5Lq6ur0yiuvqKamRitWrNBLL70kScrKytKRRx65E54p0Pzq6uo0depUHXvssRo1alRDPT4+Xj//+c+1//77N3r84sWLG9ZTXFyc0tPTte+++yo7O7vR42bPnq3169frpJNOUnl5uT799FO1a9dOBx98sFJSUpznkp+fr2XLlql///4aOnSo8zHbe3ygOTCAoEWkpKRo06ZNqqura/JzsMOHD2/039t+D2Pu3Lm6+OKL1blzZy1fvlybNm3SlClTNGbMmEaPf/rpp3X99dcrIyNDeXl5mj9/vrKzsxuGHklavXq1Jk+eLEmKRCJav369Pv/8c/3whz/U5MmTlZCQYJ77E088oUsvvVQ//elPdeqpp0qSVqxYobPPPlsLFizQ/vvvr5KSEuXn5+uee+7RpZdeKkkqKSnR+PHjdddddyk/P19ffvmlampqdMMNNzQZxICWNmPGDM2dO1e/+MUvzN/1SExMbPT7GcuWLdPpp5+uZcuWaeTIkVq1apU2bNig3//+97rwwgsbHvf2229r+fLlkqTKykotXLhQZWVleuaZZ3TSSSeptrZWkydPVnV1tZYvX96wVocMGcIAgjajXbt2Sk5OVklJiXP7YYcd1ui/v/7664b3el1dnVavXq358+frsssu04MPPtjwuIcfflhvvfWWXn75Zf30pz9Vbm6uFixYoEgkonfeeUd77713w2Orqqp0zjnn6J///KcOOOAAVVdXa8iQIdpzzz2bnM/2Hh9oFhGgBdx7770RSZFTTz018uGHH0aqq6vNx95+++0RSZHx48dHNm7cGIlEIpHq6urIoYceGsnLy4ts3bq14bGvvPJKRFLktttui9TX10cikUikrKwscvTRR0cGDRoUqa2tNY+zcOHCSHp6euTOO+9scuzS0tJIfX195IYbbojEx8dHHnzwwYbHlJeXR/r37x8ZNmxYZN26dQ31J598MiIpMm3atEgkEols2rQpIimSl5cXefHFFyORSCRSV1cXWb58eTQvHRDEtjU6derU7Xp8dXV1ZI899ogMHDgw8u2330YikUikvr4+cu2110bi4uIib7/9ttlbV1cXufLKKyMZGRmRwsLChnpmZmbkwgsv3LEnArSgn/3sZxFJkZ/97GeR2bNnN/q82h7vvvtuJC4uLvKPf/yjoXbeeedF0tPTI+eff36kvLw8EolEIlu2bIn069cvMnr06Eb9V199dSQxMTHy0UcfNdReeOGFSF5eXkRSZNOmTVEf/+qrr46kpqZG9TyA7+N3QNAirr32Wv3xj39Ufn6+jjjiCKWmpmq//fbTr371K23cuNHZc/bZZ6tr166SvvvO60UXXaRly5Zp2bJlDY+57bbbtOeee+rXv/51w49cpaamatKkSVq8eLHefvvtRvtcunSp3njjDU2ZMkVff/21+vbt6/yZ9oqKCo0bN05/+tOf9Oqrr+qqq65q2Pa3v/1N//nPf/Tggw+qe/fuDfUJEyZov/320x/+8IdG++rZs6dOO+00Sd99h6x///7RvHRAEIWFhZK03UlX//rXv7R06VLddtttys3NlfTdj3HccccdysrK0u9///tGjy8vL9cnn3yiqVOn6uWXX1avXr1UVFSkOXPmNO8TAVrQAw88oNtuu01vvPFGw48jHnrooZo0aZIzRSoSiejLL7/Uv/71L02ZMkVbtmxR165dm3wulZSUaOLEiQ0/cpWRkaGf/OQnmj59ekO0blVVlf785z/rzDPPbHS35cc//rF69uzpPN/tPT6wo/gRLLSIuLg4XXbZZbrsssu0YcMGffnll3r77bf10EMP6dFHH9XMmTM1cODARj3fj+Lc9nsTq1ev1qBBg1RZWal58+bpmGOO0T//+U9FIhFJ311QKysrJUkLFizQiSeeqOXLl+v000/X119/rREjRigzM1Px8fEqKChw5qIfc8wxKiws1Mcff6x99tmn0bYZM2YoLi5OGzZs0NSpUxWJRBqOnZaWpgULFjR6/MiRI3fglQPC2PYPm21r53/54osvJEkHHnhgo3pycrKGDRumuXPnNtR+//vf6+abb1b37t01cOBApaSkqLS0VJK0du3a5jh9oFVISkrSzTffrJtvvlmrVq3Sl19+qddee0233HKLHn/8cc2ePVtdunSRJH322Wc6++yzVVBQoOHDh6tTp05q166dqqqqmqyLDh06aMiQIY1qvXv3Vn19vdauXau+ffs2BEV8/3dNJOmAAw7Q+++/36gWzfGBHcUAghbXrVs3devWTccee6xOPfVUHXroobr99tv1t7/9rdHjOnXq1Oi/t/2ielVVVaP/u2bNGj377LNNjjNu3Dj169dPknThhRdq8+bNWrlyZaMM9FGjRmnDhg1NenNzc7V06VItX768yQBSWVmp+Ph4vfDCC036srOzG37vZJttd3GA1mzbz4gvWrRIo0eP/p+P3za4f/8XzrfVqqurJUkzZ87UddddpzvuuEO/+tWvGh4zY8YMTZs2rWF4B3Y1vXv3Vu/evXXiiSfqkEMO0XnnnaeHHnpIt9xyi+rr6xvuTCxYsEAdOnRo6OvRo0eTdZGent4oWEVq+pm4bU26fjH9+7Vojw/sKAYQtIji4uImA4UkHXzwwUpISGj0Y1XbKyMjQ5mZmRo6dGhDao7lk08+0WWXXdZo+Ni6davy8/OdyVovvPCCrr76ao0fP15/+ctfdP755zdsGzBggLZu3apHHnlku9JCvv+hAbRGo0ePVpcuXfTcc8/pqquuMt+3paWl6tixo/r27Svpux9r/P46WLp0acPw//HHH0v67kcU/9vChQub7Ju1grbO+qw74ogjJKnhs27VqlVatWqVrr/++kb/+C8sLNS6deu03377RX3sbWtyW+DDf/v+Z+zOOD7gw++AoEX88Ic/1EcffdSk/t5776m2trZRisf2iouL04UXXqg33nhD8+fPb7J9y5YtDT9z2717d61YsaLR9r/85S8NPwbyfe3bt9fTTz+tK664QhdccIEeeOCBhm3nnXeeEhISdOeddzbpi0QiWrNmTdTPBWhpaWlpuvvuuzVr1iz95je/cT7moYce0uOPPy5JOuWUU5SUlNTkd57eeecdffXVVzrjjDMkSTk5OZLUaP1VVFTosccea7L/zMxMFRcXN8fTAVrEoYceqkWLFjWpT5s2TZIaPuuys7PVrl27Jp9LkyZNUlJSUkzHzs7O1qhRo/TMM880+ttaa9eu1Ztvvtnksc19fMCHOyBoEampqRo1apROPvlknXDCCUpKStL8+fP1xBNPaPDgwbrtttti2u9vfvMb5efn69BDD9Ull1yiffbZR6WlpVqwYIGmTZumDz/8UGlpaZo4caKuvvpqXXrppTrooIM0a9YsffPNNxo9erQWL17s3HdcXJweeOABde7cWddcc422bNmi2267TYMGDdIzzzyjCy64QIsWLdJJJ52kTp06admyZZo6darOOecc3XDDDTvycgEt4sILL1RNTY0mTpyot99+W+PGjVNubq7WrVunyZMna/78+XrmmWckffdjin/605908cUXa+zYsTr55JO1cuVK/f73v9exxx6ra6+9VpI0duxY5eXl6Sc/+Ymuv/561dfX69lnn9XZZ5/d5BfQx4wZo2eeeUZ/+MMflJuby98BQZtTU1Oj/fbbT6effrqOPPJI1dfXa+bMmfrb3/6mww8/XFdccYWk734k6vLLL9fDDz+sxMREDRw4UO+++64yMjI0YMCAmI//yCOP6IgjjtAhhxyiiy++WDU1NZoyZYrOP/983XfffQ2P21nHBywMIGgRb7zxhr766iu98cYbmjt3rkpLS5Wdna2//OUvGjt2bKM/RDhkyBCNGzdO7ds3frtmZWVp3LhxDd9Rlb77hb9//vOfmj59ut58801NmzZN2dnZOuSQQ/Tggw82/NzrVVddpYEDB+q1117Te++9p0MOOUT333+/7r///obb1taxb7nlFuXk5GjatGl65513NHr0aJ155pk6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dWvUPVOmTHHWU1JSzJ6Kioqoj2NFBFsxvDU1Nea+NmzY4Kx36dLF7Jk/f77n7NxiiQIGAOwY7oAAAAAACIYBBAAAAEAwDCAAAAAAgmEAAQAAABAMAwgAAACAYOIikUikpU8CAAAAwO6BOyAAAAAAgmEAAQAAABAMAwgAAACAYBhAAAAAAATDAAIAAAAgGAYQAAAAAMEwgAAAAAAIhgEEAAAAQDAMIAAAAACCYQABAAAAEAwDCAAAAIBgGEAAAAAABMMAAgAAACAYBhAAAAAAwTCAYJd1/PHH65RTTtmux55++uk69thjd/IZAbuf008/XUcdddR2PfaSSy7RAQccsJPPCADQ0tq39AkA0Xr99df16KOPatmyZaqurlZeXp5OPPFEnXfeecrIyGh4XFFRkZKTk7drn8XFxSoqKtruczjllFNUXV2tt956K8qzB1re8ccfr9mzZ//Pxx133HF67rnnnNveffdd/fGPf9SSJUtUUVGh/v3767jjjtMFF1ygrKyshscVFxdry5Yt23VeJSUl2rx58/Y9CUnnnnuuli5dqhkzZmx3D9Da/ff6kaTk5GT17NlTJ510kq666iqlp6e30JkBzYcBBG3KxIkTde+992rixIm64447lJGRoffff1833nijpkyZog8//DCm/f7jH/9QJBLZ7scXFxerqqoqpmMBLe2FF15QbW1tw38/++yzuuaaa/Tcc89pzJgxDfXExERn/x133KGbbrpJl19+uW655RZlZmbqk08+0U033aRnn31WCxYsiOm8Hn/8cW3dunW7H19SUrLdww3QVhQWFurkk0/Wk08+KUmqqKjQJ598op/97GeaOnWqPv/8c7Vrxw+woG1jAEGbUVBQoN///vcaN26c7r777ob6ueeeq5NOOkmTJk2Ked98Rwm7k06dOjX677S0NEnfrYPvf/f1+yorK/Xb3/5WxxxzjB5++OGG+hlnnKGTTjpJN910U8zn1bFjx5h7gV1JYmJio7XYu3dvLVy4UHfeeae++OILjRgxogXPDthxjNBoMzZt2qT6+nrl5eU12dalSxfdc889Zt+5556rPn36aK+99tJ9993X5DGu3wHZ9jsk69at0znnnKN+/frpkksu0fDhw/XJJ59ozpw5ysrKUlZWlgYMGNA8TxJo5YqKilRVVeVch2lpaXrggQecfcXFxbr44ovVr18/DRkyRLfffrvq6+sbPcb1OyDbfoeksLBQF110kQYMGNBQe/PNN7Vs2bKGdfi/hiegLUtNTZWkJnc/evbs2fD+z8nJ0ciRIzVp0iRVV1c3elxxcbGuvvpq5eXlKS8vT1dffbUqKyvVt29f/d///V+w5wFIDCBoQwYMGKDOnTvrpZde0qpVq7arp7q6WpdcconOPPNMvffeezrrrLN0/fXX669//Wujx7l+B6SoqEgbNmzQhAkTdMYZZ+iNN97QyJEjNX36dB1wwAHad999lZ+fr/z8fM2aNau5nibQquXk5KhHjx567bXXtHTp0u3qqaur08UXX6wTTzxR//73v3XppZfqlltuaXQHRXL/DkhxcbEKCgp0/vnn68QTT9Qbb7yhUaNG6ZVXXtExxxyjfv36NazD/Pz8ZnueQGuyYMECPfbYYxo2bJj22WefRtvmz5/f8P7/9NNPdfXVV+u+++7Tz3/+84bHbN26Vccff7xeeOEF3XPPPXrnnXc0YsQIXXrppSooKFBZWVngZ4TdHT+ChTYjMTFRzz77rM4++2zl5eXpkEMO0YgRI3TooYfqmGOOafJjJZL02Wefae7cuRo2bJgk6Ze//KWmTp2qP/7xjzr33HP/5zE/++wzzZgxQwcddJAkaciQIZKkhIQE1dXV8R1X7Jaee+45/fjHP9aQIUN04IEHauTIkTrkkEN07LHHqkuXLk0ev3DhQj388MMaNWqUJOmqq67S66+/rj/+8Y+66qqr/ufxFi5cqHvvvVfHHXecJGnQoEGSvrsmxMfHsw6xy3nttdca3teVlZWqqKjQwQcfrJdfflnx8fGNHpuZmdnw/2dlZalfv34qKipqGERSUlL0/PPPa+bMmfrXv/6lE088UZLUr18/VVRU6Jlnngn3xID/hzsgaFNOOOEErV69Ws8995xGjBihefPm6cwzz1Tv3r31xBNPNHl8//79G4aPbfbbbz8tW7Zsu47Xs2fPhuED2J089thjjX60KSsrq+FHOkaNGqWVK1fqpZde0qGHHqqvv/5a5513nnr16qUHH3ywyb4yMzMbho9t9ttvP33zzTdNfgzLpWPHjg3DB7A7OO644xruaixZskTTpk1TWVmZjjnmGG3atKnRY+fMmaOzzjpLgwYNUrdu3ZSVlaVf/epXqq+v1/LlyyVJ77zzjpKTk3XCCSc06j3ttNOCPSfgvzGAoM1JTU3V+PHjdd9992n69OlasWKFhgwZoksuuURz5sxp9Njc3Nwm/RkZGdsd9dmzZ89mOWegramsrFRhYWGj//13UlxycrLGjh2ru+++W2+//bbWrFmjgw46SD//+c/1/vvvN9qXtQ5ra2tVWlr6P8+lR48eO/x8gLZk2y+hZ2VlqUePHho9erSefvppLVq0qFEIy9y5c3XooYeqsrJSTz31lObOnav8/PyG34nc9k2DjRs3qnv37oqLi2t0nKysLLVvzw/DIDwGELR5OTk5Dd/tee+99xpt29GowqSkpB3qB9qqn/3sZ9q0aVOj//n+rk5mZqZuueUWSd/9jZD/5luH2xN/zToEpL322kvSd0PHNk8//bQk6fnnn9chhxyiHj16KCsrq0k8dUZGhgoLC5vss6ioKKroa6C5MICgzfjPf/5j/lG0bRfblJSUIOfSoUOHRn9HAdjVJCcnN/kRLOm7VLlHH33U2cM6BHaelStXSlKj37OqqalRhw4dmgzpL7zwQqP/Pvzww1VaWqrPPvusUf373ywAQmEAQZtRU1Ojs88+W2effbYWLlwo6bt0nXfffVe/+tWvlJ2drfHjxwc5l8GDB2vp0qXasGFDkOMBrUVdXZ0uvfRSjRs3Tl988UVD7aOPPtK1116rTp066ayzzgpyLoMHD9aaNWu0YsWKIMcDWsrq1at1xRVXKD4+XpdeemlDfcyYMSoqKtK9996r+vp6FRUV6fLLL1d2dnaj/vPOO0/9+vXTxRdfrMWLF0uSZs2apZdeeinYNwyA/8YAgjYjLy9PU6ZMUXl5uY455hilpqYqKSlJZ555po4++mjNmDFDXbt2DXIuEydO1J577qmePXsqMzOTvwOC3UZ2drZee+01tW/fXieccIJSUlKUnJysU045Rfvvv79mzpypPn36BDmXK6+8UgcffLD22GMPdenShTQs7DK2pWBlZWUpPT1dQ4cO1datWzV9+nQdffTRDY/70Y9+pLvuukt33XWXUlJSNHDgwIZB47+lpaVp+vTpysnJ0dChQ5WSkqKbbrpJ999/v+rq6pSYmBj6KWI3FxfZnh/ABVqhiooKRSKRhj/O9H3FxcWSmv7V54qKClVUVDT6x0pJSYkikUijx1r9/626ulplZWWKi4tzxo8CbUF1dbVKS0vVqVMnJSQkRNVbWVmp+vp6cx2WlJSovr5eGRkZTfrKy8uVmZnZ8IuxpaWl2rp1qzp37vw/+/9bTU2NSktLFYlEGELQ5hUUFDT674SEBO/n0Dbl5eUN67CmpkYlJSXKyMho8kvm234xPSkpSZs2bVJ2drYmTZrEHyNEUAwgAAAAu6Gnn35aEyZM0EcffaTDDjuspU8HuxEGEAAAgF3cgw8+qKFDh+rwww9XfHy8pk+frvPPP1+DBg3SBx980NKnh90MAwgAAMAu7quvvtLEiRP16aefqqKiQh06dGj4m1rb8yNeQHNiAAEAANiNlJaWKi0trckfJgRCYQABAAAAEAwxvAAAAACCYQABAAAAEEz7//0QhNYWfyYzPj7eWT/nnHPMniOPPNJZf+qpp8yetpjU4fsjhTfeeKOz/vnnnzvrjz76aLOcU2it8Sc92+I6a27//fc2vu+UU05x1ktLS82eKVOmRHX8/v37m9uOO+44Z3369Olmz+rVq531ysrKqM7rf4nlvWOtAd++Ylk3rDVg52uN66yt4Q4IAAAAgGAYQAAAAAAEwwACAAAAIBgGEAAAAADBMIAAAAAACIYBBAAAAEAw/CX0VihEZGEs0Y977bWX2XPHHXc464sXLzZ7Nm7c6KwffvjhZk9ycrKz/sUXX5g91jn43vrW61NbW2v2ZGRkOOvjxo0ze6xY4ZSUFGe9X79+5r5++9vfOuvz5883e0JpjZeZthoNap33nnvuafb07dvXWd+yZYvZY33NrrvuOrPniCOOcNazsrKc9YULF5r7uu+++5z1mTNnmj3Wa1BcXGz2WNcHK9LXx4ojl6S6ujpnnRheoO1pjeusreEOCAAAAIBgGEAAAAAABMMAAgAAACAYBhAAAAAAwTCAAAAAAAiGFKxWqLUmhjzyyCPmtvXr1zvrFRUVZk+7du75t6SkxOzJzs521ocOHWr2WMlV1dXVZk9SUpKznp6ebvZYSVxlZWVmz9atW5116z3QsWNHc19HHXVUVPWQWuNlprWus//l2GOPddat95JkJ85Za1CyE7I2b95s9owYMcJZHzZsmLP+wgsvmPuqqalx1nNycswe632Wmppq9vTq1ctZ/+abb8yeBQsWOOvNnWgVC9YasPO1xnXW1nAHBAAAAEAwDCAAAAAAgmEAAQAAABAMAwgAAACAYBhAAAAAAATDAAIAAAAgmPYtfQJofeLj4531Pn36mD1r16511jt16mT21NXVOevJyclmT1VVlbP+6aefmj1WnGf79vbb3zo3X/ReRkaGs56Wlmb2WKyI4NLSUrNn9erVzvpBBx1k9sycOTO6E0PUYolmHTRokNljvTfXrFlj9lix0r7o3s6dOzvrvvfzokWLnPVZs2Y561lZWea+MjMznXVfdLD1Wvsit5cuXeqsDxw40OxZvHhx1McBAPz/uAMCAAAAIBgGEAAAAADBMIAAAAAACIYBBAAAAEAwDCAAAAAAgiEFC01Y6VC+BCYrAcpKoJKkhIQEZ724uNjssRJwUlNTzR5rm5Um5ONL4Kmvr3fWfUlD6enpUe3Lp6Kiwlnv0aNH1PtC8/Elp1m6d+9ubisvL3fWfe9NSyzvZ196XE5OjrNuJevFsgZ9rNfal0RmvQZFRUVmj5Xe9e2339onBwBowB0QAAAAAMEwgAAAAAAIhgEEAAAAQDAMIAAAAACCYQABAAAAEAwDCAAAAIBgiOFFE4MHD3bWrZhXyY6a9cWJrl+/3lkPFY/riwj2xXZGy3duXbp0cdY7dOjgrK9du9bcV1lZmbPeuXNnz9mhJVnvM+vrL/ljqptTLGvAug5Ya9oX6Wttq62tNXusc/b1pKWlOeu++OSePXs668TwAsD24Q4IAAAAgGAYQAAAAAAEwwACAAAAIBgGEAAAAADBMIAAAAAACIYULDQxdOhQZ91KuJGkoqIiZ/3ggw82ewoKCpz1xMREs8dKekpOTjZ7YhEfH++s+14DK4HHSuGSpMzMTGc9PT3dWV+6dKm5r5SUFGfdl0SGlpWdne2sV1dXmz1WOpMvbc2X6GSxkqt8x7HWgNXjWxu+tWax1q3v9bSuHb6ErqSkpOhODADQCHdAAAAAAATDAAIAAAAgGAYQAAAAAMEwgAAAAAAIhgEEAAAAQDAMIAAAAACCIYYXTVixrVYEriStXLnSWffFbFrH2bhxo9ljRXP6IjutCFBfzGYssaE1NTXOenl5udljvQbWcaqqqsx9VVRUOOtdu3Y1e9CyevXq5azX1taaPVYEbGlpqdljRTT7Iq+tNWXF8/rOzVprscQD+9agdXzfGrTWbadOncwe61poxWpLUmFhobNuRRdLsb0+ANAWcAcEAAAAQDAMIAAAAACCYQABAAAAEAwDCAAAAIBgGEAAAAAABEMKFpqwknl8CUxW+kxeXp7Zk56e7qzPnj3b7MnIyDC3NScrGceXGmQlDRUUFJg9VjrQ/vvv76w/9thj5r6sr4H1OiOMhIQEc5v1fvIlPSUnJzvrvnSqWI5jnbeVECfZ78FY0qksvmSojh07Ouvr1683e6zn41s3mzZtctazsrLMHisFi6QrN+s9I0nV1dXOep8+fcyehx9+2Fn/+OOPzZ78/HxnvbKy0lm3PgMk+/PT97kay3vDSlXzpa1Za8D3eRcL6/XxXVPS0tKc9fj4eLPHuq707dvXWV+7dq25r2eeecbchh3DHRAAAAAAwTCAAAAAAAiGAQQAAABAMAwgAAAAAIJhAAEAAAAQDAMIAAAAgGCI4UUTVtStFUkoSTk5Oc763LlzzR4req9Lly72ycXAihq1onal2GIJrbhAn08++cRZf/nll531YcOGmftavXq1s56bm2v2WFGXVswlometDR9fpK61zYp09m3zRYBa73Vf/GVtba2zbkX6+p5namqqs27F2fqO43ttKioqnPWuXbuaPda1sFu3bmbP4sWLzW1oyvfesBxyyCHmNutzZc899zR7jj/+eGfdOjdfTHxRUZGz7vvcsNaa77PLitv1xYFb68O31rdu3eqs+6K9rVhh39fauqb4Xuuvv/7aWe/UqZOz/tVXX5n7ws7DHRAAAAAAwTCAAAAAAAiGAQQAAABAMAwgAAAAAIJhAAEAAAAQDClYuylfIoaVYmGlUUhSdna2sz516lSz56ijjnLWfUlTVlpGLCkavrQOKwXLdxwrUSglJcXssdJMnn32WWf9jjvuMPe1dOlSc5ulZ8+ezvry5cuj3hfcrNdYst8z6enpZo+VpmOl30h2olR5ebnZE8tas1JzrLS1srIyc19WMo/vOmQdx5eYs2XLFmfdl4JlJQD5vm7WtpKSErNnd2a9xj5HH320ue3JJ5901jMzM82e559/3lnfsGGDs259bkhSnz59nPWBAweaPVZqk5XcJkkdO3Z01n2fQ9ZnYWVlpdkTS1KidRxfGp91jfr222/NHitZzPoa9O3b19yX7+uDHcMdEAAAAADBMIAAAAAACIYBBAAAAEAwDCAAAAAAgmEAAQAAABAMAwgAAACAYIjh3U0NGjTI3GZFWfqie62IvwULFpg9o0ePjmpfklRaWuqs++IPrWjQSCRi9liRpta+JH+sr8WKB7UiO32xpdbXzRdnOXjwYGedGN7oWa+/L1a6sLDQWd9jjz3MHis21vfetN7rvh5rDfjWWnJysrNuvZ+t5yLZ71vfdciKJ83NzTV7CgoKnHUruliyY0N915ScnBxnnRje5vPWW2+Z26y4XSu2VrLft927d3fWfV9/a61169bN7LFi2n1R1Nb72Yq19vEdxzo3H+scfNcU6zX1PR/f19TF+neFJH3zzTdR7QvbjzsgAAAAAIJhAAEAAAAQDAMIAAAAgGAYQAAAAAAEwwACAAAAIBhSsHZTAwYMMLdVVlY6675EDMucOXPMbVbKjS+Zx9pWV1dn9sSS/hFLTyzn1qFDB2fdSvEoKioy95WWlhZ1jy/pB9HJyspy1n3vJd97w2Ktm06dOkW9LyvpSrKTaXxpb9b+rNdm3bp1nrNz810fiouLnfUhQ4ZEvT9f2pbV47tGWklcixcvNnsQHStpTLKvqb4EpC5dukR1fN97xkrD8yVAWaz1JNlJibFca3xr3frs8PVYCZdWep4kbd682Vnfe++9zR4rDe+DDz5w1ocNG2buK5Z/92D7cAcEAAAAQDAMIAAAAACCYQABAAAAEAwDCAAAAIBgGEAAAAAABMMAAgAAACAYYnh3U926dTO3WTF+vohBa3++nq5du0Z1fMmOEvRFc0YiEXNbc7Kea3V1ddQ9VVVVzvqKFSvMfQ0ePNhZ98XwRhszCVvPnj2ddV/8pRVZ6XvPWLGQ6enpZo8Vre2L4bX4YjatSFMrIti3Nq3XzYqbluxrhy8K2YrCjiUe1YoMlfxRwLsz6xroiz/9wQ9+4KyPGjXK7Jk7d66z3rlzZ7PHinO1ztn3OWS9b8vLy80e631rfT74+D6LreNYsbmS/fWJ5Xpnvc6+c1i0aJHZY70PrPeN7zpofa5ix3EHBAAAAEAwDCAAAAAAgmEAAQAAABAMAwgAAACAYBhAAAAAAARDCtZuKjc319xmJbn4elauXBl1j5UKEkv6jI8vtSfaHt+51dTUOOu+VBArgcdKDVq6dKm5r/33399Z37hxo9njS4BBdHJycpz1VatWmT1WMo0vlcXalpmZafbk5+c760lJSWZPLOvGSsax3s++pCMrGceX3GYlCvlSxfr16+esZ2RkmD1WapAvzScrK8tZ911TYvkatDW+94DlpJNOctb79u1r9jzyyCPOev/+/c0e62tmvc86duxo7sv6HLAS6iT7MzI5Odnssd4zsaRBJiYmmtusa5dvDVisz07Jfj7WZ6ckTZ061Vm3vgZjx44192W917DjuAMCAAAAIBgGEAAAAADBMIAAAAAACIYBBAAAAEAwDCAAAAAAgiEFazflS6dauHChsz506FCz56mnnnLWrRQP3zZfIoaV5OFLkrG2NXdPLGkdVo+VzPPRRx+Z+6qqqnLWrcQeRK9r167mtvj4eGfd9362Uqh86VTWuvElZ1nvDV+aTizPx0rGsdKEfGvDOmffGrSuD6WlpWaPlV7mu3ZZ6UC+41jr0HptJH+CXVvie29aXzPfGhg0aJCzXlZWZvbsueeeznos10drDfgSvWJJzrLeZ+np6VGfW2FhodlTUlLirPteG2ut+74G1rn5UuossaRlWmvNt27vvfdeZ/2ee+6J+vhojDsgAAAAAIJhAAEAAAAQDAMIAAAAgGAYQAAAAAAEwwACAAAAIBgGEAAAAADBkM+5m8rIyDC3WfGXqampZo8VFzlmzBizx4qg3bp1a9Q9Pr4IyBCsKEXJjm3s3Lmzs+57LlZs6Nq1a2M6NzQ1fPhwc5sVKWvF2Up2/KQVcSnZ7w1r3Up21GmotWHFefpigK2YTeu5SPZr7Yuz7d69u7O+cuVKs8eKiN20aZPZY11zR4wYYfa8+eab5ra2xLcGrOv92LFjzR7rvbHPPvuYPfvtt5+z3qlTJ7Onrq7OWbdiW30R1VYE7DfffGP2WK+bLx7XWh++iGDr9fQdx/q6VVZWmj2ZmZnmNosVU7xkyRKzxzo36/msX78+6vPCjuMOCAAAAIBgGEAAAAAABMMAAgAAACAYBhAAAAAAwTCAAAAAAAiGFKzdlC9NykpG8iV8FBQUOOtHHnmk2WPtz3ecWFKbrCQRK+FEslNBfGLpsVKIrKQjXxKZlRbiS0fq27evfXJo4sMPPzS39e7d21m30rEkqVu3bs56jx49zJ41a9Y461Yyj08s6US+97mVMmO9b1NSUqI+N985W2tgw4YNZk9RUZGznpuba/ZY68Z3nC+++MJZX7x4sdmzq/AlG1pJiccff7zZs2DBAmd9+vTpZo+VBnjVVVeZPYMGDXLWP/roI2d9y5Yt5r6s97pvDVifd770OutzzUrck+zkLCvtzceXglVRUeGs+87Nuq75Erq6du0aVf3WW28194WdhzsgAAAAAIJhAAEAAAAQDAMIAAAAgGAYQAAAAAAEwwACAAAAIBgGEAAAAADBEMO7m6qtrTW3WfF2vtg7K2YxLy/P7CkrK3PWY4nhDRWb62O9Bunp6WaPFZGbnZ3trPuig62vjy9y2RfRi6Z8EZOxxKlasbE9e/Y0e7Kyspz1lStXmj3JycnOui/O0+JbN9a2hIQEZ913TYklTtSKPC4uLjZ7rGvhyy+/bPbMnDnTWfd9DVasWGFu29Vdeuml5rYHHnjAWf/qq6/MnhNPPNFZX7dundnz1ltvOesLFy40ewoLC531WbNmOeu+mPRYoqhDsa4PvuudFY9r7Uuy43591yFrTVvx2ZK9ptPS0pz166+/3tzXaaedZm7DjuEOCAAAAIBgGEAAAAAABMMAAgAAACAYBhAAAAAAwTCAAAAAAAiGFKzdlC9NyUqxsFKeJKmkpMRZ7969u9mzaNGiqI9jpVj4eiyxJADFx8eb26xz8KUGWfuzklGs5DAfX8qK7/lg57OSZJ577jmz58wzz3TWfelxsbzXrR7f+9lKtbJ6kpKSot6XlaTj2+ZL5rGS9XwpWFYSl+919p33ru7FF180tx199NHO+pIlS8weK+3K9960PvN868ZKbzv11FOddWs9+47vSyK03me+zzvrOL7kS4vv88FK8LPWk48vqdH6mvr+bWGl3m3YsMFZ/8tf/uI5O+ws3AEBAAAAEAwDCAAAAIBgGEAAAAAABMMAAgAAACAYBhAAAAAAwTCAAAAAAAiGGN7dlC/2zoqs9EX3VlZWOuu+uMCKioqoz83aZkV2+jR3bKl1br7XwIoYtJ5PRkaGuS/r62ZFOUq7dzRoW9WckdO+2FLfNosVW2odP5YYXt9at9Z0LD2pqalmT3PG8O4O0b0FBQXmtvHjxzfbcXyfHSeeeGKzHQfAjuMOCAAAAIBgGEAAAAAABMMAAgAAACAYBhAAAAAAwTCAAAAAAAiGFKzdlC8tJDEx0Vlfu3at2ZOTkxP1OWzZsiWq40t2AlBKSkrUPb70mfj4eGfdlwxknbfvtbb2ZyXw9OvXz9xXcXGxs26lY/2vc0PzaO6UI+vrHMu6iYXvnK20KWs9+d6b1trwpfFZPb7Xpqqqylm3kv18YlnrPrtKChYAfB93QAAAAAAEwwACAAAAIBgGEAAAAADBMIAAAAAACIYBBAAAAEAwDCAAAAAAgiGGF9utpqbG3DZ48GBnPT093eyxIit90ZxZWVnOelpamtlTVFQU1fElO07Ux+rxHScpKclZt57P3nvvbe4rPz/fWc/MzDR7Nm/ebG5DdKy4XV+Uaiw9ZWVlzrrvPWu9B30Rwb5tloSEBGfdOjdfPK7V44vhtc7Z99pUV1c7677rXbTHl4i8BoD/xh0QAAAAAMEwgAAAAAAIhgEEAAAAQDAMIAAAAACCYQABAAAAEAwpWLspXyqMlcC0du1as6dPnz5R98ybN89Zr6ioMHusBKDu3bubPVYKVklJidljvT6xpOlYyUCSnbRjJYH5UqsGDRrkrMfHx5s9S5YsMbchOr7kqubsqaqqctZ9SXCxJDrFwnqvb9y40Vn3vTfbtXN/f2zr1q1R9/jSqWpra511X9qWJZavJwDsjrgDAgAAACAYBhAAAAAAwTCAAAAAAAiGAQQAAABAMAwgAAAAAIJhAAEAAAAQDDG8uylf/KUvstIya9YsZz0rK8vsmTBhgrNeX19v9ljxtAUFBWaPFQHqiya1zsGK+ZSkLVu2RHV8ScrOzo7q3B5++GFzXy+++KKzvmnTJrPHtw3NI5b15ItzLSwsdNa7du1q9liR076oWescfD2JiYlR7atjx47mvlJTU511K4ZYsiN6U1JSzJ5Yvj4AgB3DHRAAAAAAwTCAAAAAAAiGAQQAAABAMAwgAAAAAIJhAAEAAAAQDClYu6na2lpzm5Vyk5GRYfZ89dVXzvqtt95q9vzf//2fs+5LubHSbKw0KUnq37+/s15RUWH2WGk+vhSsWBK6Fi1a5KyffPLJZk+02re3l7nvNUDz8CVaxcJKLuvXr1+zHsdKh/I9n4SEBGfdSrSy1pmPbw1a144uXbqYPawBAAiPOyAAAAAAgmEAAQAAABAMAwgAAACAYBhAAAAAAATDAAIAAAAgGAYQAAAAAMEQw7ub8kV2lpSUOOuLFy+O+jj3339/1Nt8EbR9+vRx1tPS0sweK+rTF0VsxXmWl5ebPd9++62z/umnn5o9W7ZsMbe5WHGmkh1F7DtnXzwpWicrNtaKgZakTp06Oeu+iOb6+npn3YralaRevXo560OGDHHWX331VXNfVtyvFcXt4zvnpUuXRr0/AMCO4Q4IAAAAgGAYQAAAAAAEwwACAAAAIBgGEAAAAADBMIAAAAAACIYUrN3U9OnTzW1WMtLChQt31uk08tprrwU5TlvkS7SaNWuWs56UlGT2fPPNNzt8TmgdVq9ebW6zEqWspCtJio+Pd9arq6vNno8++shZX7JkibNuvWclqXPnzs56WVmZ2WOlXcXFxZk9Vupfc7POwfraAMCujDsgAAAAAIJhAAEAAAAQDAMIAAAAgGAYQAAAAAAEwwACAAAAIBgGEAAAAADBxEXIAAQAAAAQCHdAAAAAAATDAAIAAAAgGAYQAAAAAMEwgAAAAAAIhgEEAAAAQDAMIAAAAACCYQABAAAAEAwDCAAAAIBgGEAAAAAABMMAAgAAACAYBhAAAAAAwTCAAAAAAAiGAQQAAABAMAwgAIAdcvvtt+tf//rXdj32nnvu0csvv7yTzwiA5aGHHtKzzz7b0qeB3VxcJBKJtPRJAD633XabamtrJUnx8fFKS0tTjx49NGLECA0aNKiFzw7YdZWVlemtt97SihUr1L59ew0cOFBHH320kpOTGz0uLS1N559/vh5++OH/uc+ePXvq2GOP1dNPP71d5zBp0iQNGTJEY8eOjeEZAGHV1NTo7bff1rJly1RXV6e8vDwdffTRSk9Pb+lTa7DXXnupb9++2/1NA2Bn4A4IWr1JkybppZdeUnJyshISElRQUKAXX3xRw4cP14gRI/TRRx+19CkCu5znn39effv21c0336w1a9Zo7dq1uvbaa9WjR4/tHh5cbrjhBo0bN267H3/ffffxDyW0CdOnT9eAAQN0+eWXa/ny5SosLNQdd9yh3NxcTZo0qaVPD2hV2rf0CQDbIy8vTzfddFOjWmFhoc466ywdffTRev311zVmzJgWOjtg17J69Wqdf/75OvbYY/Xaa6+pXbvvvlc1adIk/fa3v9Vnn32m888/P6Z9X3XVVc14pkDrUFlZqR//+Mfq3bu3ZsyY0XCXcNKkSfrzn//MEA18DwMI2qzMzEy9+OKLysvL02WXXabFixcrPj5eZWVluuuuu3TiiSdqxIgRmjp1qvLz83Xqqadq7733liQtW7ZM06ZNU0FBgXr06KEf/vCH6tq1a6P9r1y5UtOmTdPGjRvVq1cvHXPMMerRo0fUjwHamk8//VQ1NTU644wzGoYP6bsfgbzlllu0cuVKZ18kEtEbb7yhefPmqXv37ho/fnyTHz255557NGDAAP3oRz9qqN1+++3ab7/9dMIJJ+itt97SF198oQMPPFDvv/++KioqNGfOnIZvQPTp00cXX3zxTnjWQOwWLFigzZs36+c//3mTH1G85JJLdNxxxzWqPfTQQ+rcubPOPvtsffDBB/rkk0+UkZGhcePGqVu3bk32H4lENH36dM2dO1e1tbUaNmyYfvCDHzRan5MnT9bChQslfbdWu3TposMPP1zDhw//n+dfVlamBx54QB06dNBVV12lhIQESdI333yjt99+Wxs3blROTo5++MMfNjq/zz77TK+99ppuuOEGlZeX65VXXtG6det02223NTo34Pt4d6BN69ixo04//XQtX75cc+fOlfTdhfSOO+7Qu+++q+OPP17Tpk1Tfn6+Fi1aJEn6xS9+ocGDB2vatGmqrKzUc889pwEDBmjatGkN+33yySe1xx576K233lJlZaXef/99HX300Xr++eejegzQFm37B8aSJUuc2/v06dOkFolEdPbZZ2vy5MnavHmzbr75Zg0bNkzFxcWNHvfggw/q1VdfbVT73e9+pzfeeEOnnXaannvuOa1atUqff/65kpOTFRcXp/j4eCUnJys5OVlJSUnN9CyB5hPtmnnsscc0efJkTZw4UX/4wx9UVFSkBx98UHvuuae++eabRo/99ttvdcABB+jMM8/U8uXLVVBQoEsvvVSHHHKItmzZ0vC4hISEhnUSiUT0ySef6OCDD9Y111zjPffVq1frsMMO01NPPaUTTzyxYfi4+eabNXDgQL3++uuqqKjQiy++qAEDBjS6mzNr1izdcccdevPNNzV27FgtW7ZMr7/+uurr67f/xcPuKQK0cklJSZETTzzR3P74449HJEWefPLJSCQSiaxbty4iKdKtW7fIggULGh63efPmyGOPPRaRFPn73//eaB8/+9nPIhkZGZEtW7ZEIpFIJCcnJ/LTn/600WMqKysb7W97HgO0RVu3bo0cfPDBkfj4+MgFF1wQefXVVyOrVq0yH5+amhrJysqKTJs2raG2ZMmSSLt27SK//e1vGz22R48ekfPOO69Jf5cuXSKvvfZaQ23z5s2RSCQSyczMjFx44YXN8KyAnWv8+PERSZFx48ZF/vGPf0SWLVtmPnbPPfeMZGVlRf785z831DZv3hxJT0+PXHTRRY0ee/DBB0d69eoV2bBhQ0OtsLAwkpub22Qtfd8rr7wSkRSZOXNmo2Nv+0ydNWtWJCcnJ3LooYdGNm7c2PCYZ555JiIp8tRTTzXa39VXXx1JS0treOxDDz0UkRQ5/vjjIxUVFZFIJBLZsmVLpL6+3nteAHdA0OalpaVJkkpLSxvVDz/88IYfuZKkzp0764EHHtDw4cN15plnNnrsL37xCxUVFWnq1KmSvvt53rVr16qmpqbhMcnJyY32tz2PAdqi+Ph4vfPOO7rrrrv01Vdf6bTTTlPv3r3Vv39//frXv1ZFRUWTnry8PI0ePbrhv/fYYw/ts88++vTTT7frmL1799ZJJ53U8N+dO3fe8ScCBPT3v/9djz76qAoKCnT++ecrLy9Pubm5uvLKK1VYWNjk8YmJibrwwgsb/rtz5846+uijG62Zzz//XDNmzNDEiROVnZ3dUO/SpYsuvvhiTZ48WdXV1Q31pUuX6rHHHtNtt92mm266qWFfs2bNanL8l19+WaNGjdJRRx2l6dOnN/ox5AceeEBDhw5t8rte//d//6eysjJNmTKlUf38889Xhw4dJEkZGRmKi4vbnpcMuzF+BwRtXklJiSSpU6dOjepDhw5t9N+1tbX6+uuvte++++rWW29V5P8lUEcikYbbxcuWLZMk3XrrrbruuuvUu3dvjRkzRqNGjdIJJ5ygnJychv1tz2OAtio1NVXXX3+9rr/+etXV1enLL7/U008/rTvvvFPvv/++3n//fcXHxzc8fsiQIU320b17d3377bfbdbzvr1egrWnfvr1++tOf6qc//akikYgWL16syZMn63e/+53efvttffHFF0pNTW14/KBBg5r8nkT37t313nvvNfz3/PnzJUlz5sxp+Nza9tk1b948VVdXa/Xq1crLy9ONN96ou+++W2PGjNFee+2ltLQ0tW//3T/zCgoKGh3n008/1RtvvKELL7xQjz/+eKNtkUhEX375pQYNGtTkszISiSg+Pr7hs3Ib1i+ixR0QtHnbLtD77LNPo/r3v4O6bchISkpS+/btlZCQoISEBCUmJio5OVm33367jjrqKEnS1Vdfrfz8fN1www0qKyvTddddp379+jW6UG/PY4BdQXx8vIYNG6YHHnhAF1xwgT7++GPNmTOn0WNSUlKcfVu3bt2uY3DHA7uSuLg4DR48WLfeeqtuuukmLV26VK+//nqjx2zPmtn2udWhQ4eGz63ExEQlJibqgAMO0O23365OnTrpq6++0p133qnf/OY3ev311/W73/1Ov/71rzVhwgTn+Q0ZMkQjR47UlClTNHPmzEbbtg0ars/KpKQk3XrrrY3udkqsX0SPOyBo04qLi/XCCy9o8ODB2nfffb2PTUpK0qBBg5SYmNgk0tclLy9P1157ra699lpVVlbqmGOO0cSJExsl8GzPY4C2ZuXKlerevbvzF77z8vIkSevXrw9yLu3atWv4DizQWm3cuFGJiYnKyMhosm1H1sy2z7X999+/0Y9rfd8HH3wgSTr66KMb1T///HPn4zt37qzJkydr7NixOvbYYzV16lQde+yxkr5bc3vttZfatWu3XZ+VQCy4A4I2a/369Tr11FNVVlamxx57bLsi/66//np9/PHHevbZZ5ts++KLL7R+/fqGRKv/1qFDB+Xm5jYcY3seA7RVs2bN0pFHHqnFixc3qldUVGjy5MlKTk7WgQceGORcunfvrg0bNgQ5FhCrVatW6eCDD27yD/66ujo988wziouL0xFHHBH1fg866CAddthh+s1vfqO1a9c22lZbW6t33nlH0ne/cyV9F4u7zebNm/Xoo4+a+05LS9Prr7+u0aNH66STTtIrr7zSsO3666/X7Nmz9cQTTzTpW7BgwXb/aCVg4Q4I2oTFixc3fCemrKxMS5Ys0Xvvvdfwl9BHjhy5Xfu56KKLtGHDBl100UV6/PHHNWzYMFVUVOjLL79UXV2dpk6dqkgkottvv11XXnml9t9/f2VlZWnevHn69NNPG368anseA7RVgwYNUl1dnfbaay+NHj1aQ4cO1ebNm/XGG2+opqZGzz33nPNvFewMZ599tm688UZdcMEFys3N5e+AoFXKyclRTk6ODjnkkIa/vVFWVqZ33nlHGzZs0MMPP6xhw4bFtO8pU6bozDPP1MCBA3XyyScrNzdXa9as0axZszR27FiNHj1a++67ry688EJdd911+vzzz9WxY0d98MEHuvfee/Xvf//b3HdSUpJeeuklXXTRRRo/frwef/xxTZgwQWeffbbWr1+vK664Qk899ZSGDx+uqqoqLVy4UFVVVXr55ZdjfKWA78RFuLeNVu6uu+5q+JnYdu3aKS0tTT169ND+++/v/HsE5eXluv/++zVmzBgdcMABzn1u2LBB7777rr799lt17dpV++yzj0aMGNHoMV9//bU+++wzbd68WT169NBxxx3X5Pb69jwGaKuWLl2quXPnatWqVUpISNDAgQN15JFHNvnZ9bvvvlv77rtvkz+29sILL6i4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" alt="FashionMNIST 的 9 个随机样本，标注为 Sneaker、Coat、Sandal、Shirt、T-Shirt、Bag、Dress 等">
+    <figcaption>随机抽取的 9 个训练样本：每格上方是类别名，图像是 28×28 灰度图</figcaption>
+  </figure>
+
+  <div class="note">
+    <div class="label">解读 03 · 能 <code>len()</code> 能 <code>[i]</code>，是因为实现了两个魔法方法</div>
+    <p><code>len(training_data)</code> 调的是 <code>__len__</code>，<code>training_data[i]</code> 调的是 <code>__getitem__</code>。返回的永远是一个 <strong>二元组</strong> <code>(image, label)</code>，所以可以写 <code>img, label = training_data[sample_idx]</code>。</p>
+    <ul>
+      <li><code>torch.randint(len(training_data), size=(1,))</code> 返回形状为 <code>(1,)</code> 的张量，<code>.item()</code> 取出其中的 Python 整数；直接 <code>random.randrange(len(ds))</code> 也一样。</li>
+      <li><code>figure.add_subplot(rows, cols, i)</code> 的参数顺序是<strong>行、列、序号</strong>，而序号 <code>i</code> 从 1 开始 —— 写成 <code>range(1, 10)</code> 正是为此。</li>
+      <li><code>img.squeeze()</code> 去掉长度为 1 的通道维：单张图是 <code>(1, 28, 28)</code>，压成 <code>(28, 28)</code> 才能直接 <code>imshow</code>。</li>
+    </ul>
+    <h4>为什么值得先画图</h4>
+    <p>训练前“看数据”是性价比最高的调试手段：能立刻发现标签错位（图和名字对不上）、变换把图像裁坏、类别严重不均衡等问题。这类错误不会让程序报错，只会让模型莫名其妙地学不好。</p>
+    <h4>一个性能提示</h4>
+    <p><code>Dataset</code> 是<strong>惰性</strong>的：每次 <code>training_data[i]</code> 都会重新从磁盘读取并解码图片。上面这个循环只画 9 张，所以无所谓；但如果在训练循环里逐张索引，磁盘 I/O 和解码会成为瓶颈 —— 这正是 <code>DataLoader</code> 要用多进程的原因（见第 05 节）。</p>
+    <p><code>squeeze()</code> 的坑：它会压掉<strong>所有</strong>长度为 1 的维度。这里没问题，但如果你拿着一个 <code>batch_size=1</code> 的批去 <code>squeeze()</code>，N 维也会被压掉，后面就会莫名其妙地少一维。更稳妥的写法是显式取 <code>img[0]</code>。</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="custom">
+  <h2 class="sec"><span class="num">04</span>为你的文件创建自定义数据集
+    <span class="en">Creating a Custom Dataset for your files</span>
+  </h2>
+  <div class="rule"></div>
+
+  <p>自定义的 <code>Dataset</code> 类必须实现三个函数：<code>__init__</code>、<code>__len__</code> 和 <code>__getitem__</code>。请看下面的实现：FashionMNIST 的图像存放在目录 <code>img_dir</code> 中，标签则单独存放在一个 CSV 文件 <code>annotations_file</code> 里。</p>
+
+  <p>接下来的几小节，我们会逐个拆解这些函数里发生了什么。</p>
+
+  <div class="code">
+    <div class="bar"><span class="dot"><i></i><i></i><i></i></span><span class="lang">Python</span></div>
+<pre><code>import os
+import pandas as pd
+from torchvision.io import decode_image
+
+class CustomImageDataset(Dataset):
+    def __init__(self, annotations_file, img_dir, transform=None, target_transform=None):
+        self.img_labels = pd.read_csv(annotations_file)
+        self.img_dir = img_dir
+        self.transform = transform
+        self.target_transform = target_transform
+
+    def __len__(self):
+        return len(self.img_labels)
+
+    def __getitem__(self, idx):
+        img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
+        image = decode_image(img_path)
+        label = self.img_labels.iloc[idx, 1]
+        if self.transform:
+            image = self.transform(image)
+        if self.target_transform:
+            label = self.target_transform(label)
+        return image, label</code></pre>
+  </div>
+
+  <div class="note">
+    <div class="label">解读 04 · 三个函数，一个契约</div>
+    <p>这段代码看起来很短，但它定义了 PyTorch 数据集的全部契约。可以用一张表记住各自职责：</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th style="width:22%">函数</th><th style="width:26%">谁在调用</th><th>职责</th></tr></thead>
+        <tbody>
+          <tr><td><code>__init__</code></td><td>你创建对象时，一次</td><td>记录路径、读元数据（CSV）、保存 transform</td></tr>
+          <tr><td><code>__len__</code></td><td><code>len(ds)</code>、DataLoader 算批数、Sampler 取索引范围</td><td>返回样本总数</td></tr>
+          <tr><td><code>__getitem__</code></td><td>每次取一个样本（含每个 worker）</td><td>读盘 → 解码 → 取标签 → 应用变换 → 返回元组</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h4>为什么 <code>__init__</code> 里不读图片</h4>
+    <p>因为那样会在数据集对象创建时把所有图片解进内存 —— 启动慢、内存爆、而且多进程时每个 worker 都要复制一份。<strong>元数据（路径 + 标签）放内存，像素数据按需解码</strong>，是自定义数据集最重要的一条设计原则。标签文件只是文本，读进 DataFrame 的开销可以忽略。</p>
+    <h4>返回值约定</h4>
+    <p><code>__getitem__</code> 返回 <code>(image, label)</code>，于是 <code>DataLoader</code> 的默认 <code>collate_fn</code> 会把 N 个样本堆成两个 batch 张量。返回值类型也决定了 batch 的形状：这里是 <code>(1, 28, 28)</code> 与标量，堆叠后就是 <code>(B, 1, 28, 28)</code> 与 <code>(B,)</code>。</p>
+  </div>
+
+<h3 class="sub" id="init">__init__</h3>
+<p><code>__init__</code> 函数在实例化 <code>Dataset</code> 对象时运行一次。我们在其中初始化图像所在目录、标注文件，以及两个变换（下一节会详细展开）。</p>
+
+<p>标签文件 <code>labels.csv</code> 的样子如下：</p>
+
+<div class="code">
+  <div class="bar"><span class="dot"><i></i><i></i><i></i></span><span class="lang">CSV</span></div>
+<pre><code>tshirt1.jpg, 0
+tshirt2.jpg, 0
+......
+ankleboot999.jpg, 9</code></pre>
+</div>
+
+<div class="code">
+  <div class="bar"><span class="dot"><i></i><i></i><i></i></span><span class="lang">Python</span></div>
+<pre><code>def __init__(self, annotations_file, img_dir, transform=None, target_transform=None):
+    self.img_labels = pd.read_csv(annotations_file)
+    self.img_dir = img_dir
+    self.transform = transform
+    self.target_transform = target_transform</code></pre>
+</div>
+
+<div class="note">
+  <div class="label">解读 05 · 把“配置”和“数据”分开</div>
+  <p>四个参数其实就是四件配置：<strong>标注在哪</strong>、<strong>图片在哪</strong>、<strong>图像怎么变换</strong>、<strong>标签怎么变换</strong>。默认值写成 <code>None</code>，意味着“不额外变换”，这样同一个类既能用于训练（带数据增强），也能用于推理或可视化（原图直出）。</p>
+  <ul>
+    <li><code>self.img_labels</code> 这一份 DataFrame 是整个数据集唯一的“全量状态”；之后无论多少 worker、取多少样本，都从它里面查。</li>
+    <li>如果你的数据没有 CSV，而是目录名即标签（如 <code>cat/xxx.jpg</code>），同样在 <code>__init__</code> 里 <code>os.walk</code> 一遍，把 <code>(路径, 标签)</code> 整理成列表即可 —— 原则不变：<strong>只存元数据</strong>。</li>
+    <li><code>__init__</code> 里放重活（解码、转张量）会让多进程失去意义：worker 是复制这个对象，不是重新执行 <code>__init__</code>。</li>
+  </ul>
+</div>
+
+<h3 class="sub" id="len">__len__</h3>
+<p><code>__len__</code> 函数返回数据集中样本的数量。</p>
+
+<div class="code">
+  <div class="bar"><span class="dot"><i></i><i></i><i></i></span><span class="lang">Python</span></div>
+<pre><code>def __len__(self):
+    return len(self.img_labels)</code></pre>
+</div>
+
+<div class="note">
+  <div class="label">解读 06 · 一个必须准确的数字</div>
+  <p>这个返回值不是“批数”，而是<strong>样本数</strong>。<code>DataLoader</code> 用它算出每轮有多少个 batch：<code>ceil(len / batch_size)</code>。5000 张图、<code>batch_size=64</code>，就是 79 个 batch（最后一个只有 8 张）。</p>
+  <p>常见的错误是返回 DataFrame 的“行数减一”（误以为不含表头）或返回文件数。长度<strong>多报</strong>会索引越界，<strong>少报</strong>会静默丢掉样本 —— 后者更隐蔽，训练集少了几百张图，你只会看到指标略微变差。所以定义完 <code>Dataset</code> 后，第一件事就是 <code>len(ds)</code> 和实际文件数对一遍。</p>
+</div>
+
+<h3 class="sub" id="getitem">__getitem__</h3>
+<p><code>__getitem__</code> 函数在给定索引 <code>idx</code> 处加载并返回数据集中的一个样本。它根据索引定位图像在磁盘上的位置，用 <code>decode_image</code> 将其转换为张量，从 <code>self.img_labels</code> 中的 CSV 数据取出对应的标签，对二者调用变换函数（如果适用），最后以元组形式返回张量图像和对应标签。</p>
+
+<div class="code">
+  <div class="bar"><span class="dot"><i></i><i></i><i></i></span><span class="lang">Python</span></div>
+<pre><code>def __getitem__(self, idx):
+    img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
+    image = decode_image(img_path)
+    label = self.img_labels.iloc[idx, 1]
+    if self.transform:
+        image = self.transform(image)
+    if self.target_transform:
+        label = self.target_transform(label)
+    return image, label</code></pre>
+</div>
+
+
+
+<div class="note">
+  <div class="label">解读 07 · 逐行拆解，以及三处值得改进的地方</div>
+  <p><strong>① 拼路径。</strong><code>os.path.join</code> 会自动处理分隔符，跨平台安全。注意 CSV 第一列是<strong>文件名</strong>，不是完整路径。</p>
+  <p><strong>② 解码。</strong><code>decode_image</code> 读文件并解码为 <strong>uint8 的 CHW 张量</strong>，通道在前（PyTorch 惯例），支持 JPEG/PNG/WebP。别把它和 OpenCV 的 BGR、或 PIL 的 HWC 混用，否则会出现“颜色看着对、形状却不对”的怪问题。这一步是 <code>__getitem__</code> 里最耗时的部分。</p>
+  <p><strong>③ 取标签。</strong><code>self.img_labels.iloc[idx, 1]</code> 取第 idx 行、第 2 列（标签列）。取出来是 <code>numpy.int64</code>，堆叠成 batch 后是 <code>int64</code> 张量 —— 正好是 <code>CrossEntropyLoss</code> 需要的类型。</p>
+  <p><strong>④ 条件变换。</strong><code>if self.transform:</code> 利用的是 <code>None</code> 为假值的特性，比 <code>is not None</code> 简洁。变换顺序是<strong>先解码、再变换</strong>：transform 收到的是张量，所以自定义 transform 里不要假设输入是 NumPy 数组。</p>
+  <h4>三处“按官方示例能跑，但换个数据就出事”的地方</h4>
+  <ul>
+    <li><strong>列序依赖：</strong><code>iloc[idx, 0]</code> 按<strong>列的位置</strong>取值，不是列名。别人往 CSV 里插一列（比如 <code>id</code>），代码不会报错，只会把所有图片名和标签错位——这是最经典的静默 bug。更稳的写法是按列名取：<code>row = df.iloc[idx]; img_path = os.path.join(self.img_dir, row["filename"])</code>，或在 <code>__init__</code> 里用 <code>usecols</code> 固定列。</li>
+    <li><strong>标签类型：</strong>若 <code>target_transform</code> 返回 <code>float</code>（例如误用了 <code>ToDtype(float32)</code>），<code>CrossEntropyLoss</code> 会在训练时报类型错误，且报错信息与数据无关，很难定位。分类任务的标签保持 <code>int64</code>。</li>
+    <li><strong>错误处理：</strong>多进程下 <code>__getitem__</code> 抛出的异常堆栈会被截断得面目全非。建议在解码前显式检查文件是否存在，并抛出带路径的错误信息：<code>raise FileNotFoundError(img_path)</code>。排查时能省下很多时间。</li>
+  </ul>
+  <p><strong>扩展方向：</strong>多标签分类返回 <code>float</code> 向量即可；语义分割返回 <code>(image, mask)</code>，此时 <code>transform</code> 必须同时作用于两者（<code>v2</code> 的变换支持传 dict 参数，正好解决坐标对齐问题）；如果数据是流式、无法随机索引（日志、超大数据集），请改用 <code>IterableDataset</code> 并实现 <code>__iter__</code>。</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="dataloader">
+  <h2 class="sec"><span class="num">05</span>用 DataLoader 为训练准备数据
+    <span class="en">Preparing your data for training with DataLoaders</span>
+  </h2>
+  <div class="rule"></div>
+
+  <p><code>Dataset</code> 一次只取一个样本的特征和标签。而训练模型时，我们通常希望以“小批量”（minibatch）的方式送入样本、在每个 epoch 重新打乱数据以减少模型过拟合，并使用 Python 的多进程来加快数据读取。</p>
+
+  <p><code>DataLoader</code> 是一个可迭代对象，它用一个简洁的 API 为我们抽象了上述复杂度。</p>
+
+  <div class="code">
+    <div class="bar"><span class="dot"><i></i><i></i><i></i></span><span class="lang">Python</span></div>
+<pre><code>from torch.utils.data import DataLoader
+
+train_dataloader = DataLoader(training_data, batch_size=64, shuffle=True)
+test_dataloader = DataLoader(test_data, batch_size=64, shuffle=True)</code></pre>
+  </div>
+
+  <div class="note">
+    <div class="label">解读 08 · DataLoader 到底替你做了什么</div>
+    <p>三个参数只暴露了冰山一角，背后它做了四件实事：</p>
+    <ul>
+      <li><strong>取索引</strong>：由 Sampler 决定顺序。<code>shuffle=True</code> 时用 <code>RandomSampler</code>，每个 epoch 重新洗牌；<code>shuffle=False</code> 时按 <code>0..N-1</code> 顺序取。</li>
+      <li><strong>切批</strong>：把索引序列按 <code>batch_size</code> 切开，得到 938 个 batch（60000 / 64 = 937.5，最后一批 32 个）。</li>
+      <li><strong>并行取数</strong>：<code>num_workers</code> 个 worker 进程各自调用 <code>__getitem__</code>，主进程只负责汇总。默认 <code>num_workers=0</code>，也就是不并行。</li>
+      <li><strong>拼装</strong>：默认 <code>collate_fn</code> 把一批 <code>(image, label)</code> 堆成两个张量 —— 这就是上一节返回元组的意义。</li>
+    </ul>
+    <h4>常用参数速查</h4>
+    <div class="tbl">
+      <table>
+        <thead><tr><th style="width:26%">参数</th><th style="width:14%">默认值</th><th>说明与建议</th></tr></thead>
+        <tbody>
+          <tr><td><code>batch_size</code></td><td>1</td><td>太小梯度噪声大、吞吐低；太大显存吃紧、泛化可能变差。64/128/256 是常见起点</td></tr>
+          <tr><td><code>shuffle</code></td><td>False</td><td><strong>训练集必须开</strong>；验证/测试集保持 False，便于逐样本对比与复现</td></tr>
+          <tr><td><code>num_workers</code></td><td>0</td><td>0=主进程。数据解码是 CPU 密集的，GPU 训练时通常设 4–8（不超过 CPU 核数）</td></tr>
+          <tr><td><code>pin_memory</code></td><td>False</td><td>GPU 训练设为 True，配合 <code>batch.to(device, non_blocking=True)</code> 可加速拷贝</td></tr>
+          <tr><td><code>drop_last</code></td><td>False</td><td>丢掉最后一个不满的 batch。含 BatchNorm 且 batch 太小时建议开，避免“最后一个 batch 只有 1 个样本”报错</td></tr>
+          <tr><td><code>collate_fn</code></td><td>default_collate</td><td>样本长度不一致（如文本）时必须自定义</td></tr>
+          <tr><td><code>sampler</code></td><td>—</td><td>自定义采样策略（如加权采样处理类别不均衡、分布式训练的分片）</td></tr>
+          <tr><td><code>generator</code></td><td>—</td><td>传入带种子的 <code>torch.Generator</code> 可控制 shuffle 的随机性，保证实验可复现</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>两个实践提醒：<strong>①</strong> <code>num_workers &gt; 0</code> 时，Windows 与 macOS 需要把启动代码放在 <code>if __name__ == "__main__":</code> 下，否则会无限递归创建进程；Jupyter 里多进程也有坑，通常先设 0 调试。<strong>②</strong> 每个 worker 会 fork 一份数据集对象的<strong>引用</strong>（Linux 上写时复制），但如果你的 <code>__init__</code> 里塞了几百 MB 的数组，内存占用仍会显著上升。</p>
+    <p>最后，教程里测试集也写了 <code>shuffle=True</code> —— 对指标计算没有影响（只是顺序不同），但会破坏“第 i 个预测对应第 i 个样本”的直觉，也不好做错误案例分析。实际项目里测试集建议 <code>shuffle=False</code>。</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="iter-loader">
+  <h2 class="sec"><span class="num">06</span>遍历 DataLoader
+    <span class="en">Iterate through the DataLoader</span>
+  </h2>
+  <div class="rule"></div>
+
+  <p>我们已经把数据集加载进 <code>DataLoader</code>，现在可以按需遍历它。下面的每次迭代都会返回一批 <code>train_features</code> 和 <code>train_labels</code>（分别包含 <code>batch_size=64</code> 个特征和标签）。因为我们指定了 <code>shuffle=True</code>，所以在遍历完所有 batch 之后，数据会被重新打乱（若想更精细地控制数据加载顺序，可以了解 <a href="https://pytorch.org/docs/stable/data.html#data-loading-order-and-sampler" target="_blank" rel="noopener">Samplers</a>）。</p>
+
+  <div class="code">
+    <div class="bar"><span class="dot"><i></i><i></i><i></i></span><span class="lang">Python</span></div>
+<pre><code># Display image and label.
+train_features, train_labels = next(iter(train_dataloader))
+print(f"Feature batch shape: {train_features.size()}")
+print(f"Labels batch shape: {train_labels.size()}")
+img = train_features[0].squeeze()
+label = train_labels[0]
+plt.imshow(img, cmap="gray")
+plt.show()
+print(f"Label: {label}")</code></pre>
+  </div>
+
+  <div class="code out">
+    <div class="bar"><span class="dot"><i></i><i></i><i></i></span><span class="lang">输出</span></div>
+<pre>Feature batch shape: torch.Size([64, 1, 28, 28])
+Labels batch shape: torch.Size([64])
+Label: 2</pre>
+  </div>
+
+  <figure>
+    <img src="data:image/png;base64,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zpw5h6z3yiuvxObNm6O+vj5WrlwZnZ2dVZgWAKg0LwFPM88++2ycddZZ8eSTT8bo6Gg8/PDDsWjRonj11VcnrXfbbbfFV77ylXjvvffirbfeinPOOSceffTRKk0NAFSSM4DTTEdHR7z22muTzvitXLkybrjhhtiyZUtEROzatSvWrl0bd999d3R1dUXERy91XXfddbFq1apobGysyuwAQGU4AzjNLFmy5JCXe88999zYuXPnxNdPP/101NTUxFVXXTWxrKurK/bu3TtREgGA6UsBnOZGR0fjBz/4QVx44YUTy7q7u2PBggXR3Nw8sey0006L2tra6O7uPuz3GR4ejr6+vkk3AGBqUgCnuWuvvTb27t0bt9xyy8SywcHBaG1tnbRebW1ttLS0xODg4GG/z/r166OtrW3i1tHRcVTnBgCOHgVwGrvxxhtj48aN8cwzz0wqbC0tLdHb2ztp3VKpFAMDA9HS0nLY77Vu3bro7e2duP3qS8oAwNTiTSDT1E033RT33XdfbN68Ob70pS9Nuq+zszN6enomFb7u7u4olUqf+FEwTU1N0dTUdNTnBgCOPmcAp6Fvfetbce+998bmzZvjvPPOO+T+yy+/POrq6uKBBx6YWHbPPffEggULYunSpZUcFQCoAmcAp5n7778/br311vjqV78aGzdujI0bN0ZERF1dXdx8880RETFv3ry4/fbb4/rrr4+tW7fG0NBQbNq0KR577LFoaGio5vgAQAUogNPMGWecEevXrz9keW3t5JO911xzTVx00UXx3HPPRX19fdxxxx2xcOHCSo0JAFSRAjjNLF269FO/jNvZ2enybwCQIQUQPqM33ngjOTMyMlJoW5deemlyZv78+cmZk046KTkzPDycnCn6cUL9/f3JmYGBgeTMzJkzkzNFnlQtWrQoORMR0dPTk5yZMWNGcmZoaCg5M2/evOTM+Ph4ciYi4sCBA4VykDNvAgEAyIwCCACQGQUQACAzCiAAQGYUQACAzCiAAACZUQABADKjAAIAZEYBBADIjAIIAJAZBRAAIDMKIABAZuqrPQBMdQ0NDcmZ119/vdC25s+fn5z5j//4j+TMj3/84+RMY2NjcqapqSk5ExExODiYnDl48GByprY2/Tnyz372s+TMu+++m5yJiHjrrbeSM/X16Q/7dXV1yZnh4eHkTNHjoWgOcuYMIABAZhRAAIDMKIAAAJlRAAEAMqMAAgBkRgEEAMiMAggAkBkFEAAgMwogAEBmFEAAgMwogAAAmVEAAQAyk35VcGCSefPmJWceffTRQtv6/Oc/n5z50z/90+TMwMBAcqaIN998syLbOdatWbOm2iP8WrNmzUrOXHfddcmZ1157LTkTEdHa2looBzlzBhAAIDMKIABAZhRAAIDMKIAAAJlRAAEAMqMAAgBkRgEEAMiMAggAkBkFEAAgMwogAEBmFEAAgMwogAAAmamv9gAw1R133HEV21ZdXV1ypr29PTkzMDCQnKHyampqkjPlcjk509/fn5zp7e1NzjQ1NSVnIiKGh4cL5SBnzgACAGRGAQQAyIwCCACQGQUQACAzCiAAQGYUQACAzCiAAACZUQABADKjAAIAZEYBBADIjAIIAJAZBRAAIDMKIABAZuqrPQBMdfv370/ONDU1FdrW8PBwcqaurq7QtlLV1NQkZ8rl8lGYhGNBqVRKzhT9vaitdS4DUimA09DAwEA89dRTsWPHjjj55JPjiiuuiDlz5kxaZ+3atYfkVq1aFRdccEGlxgQAqsTTpmnm2WefjbPOOiuefPLJGB0djYcffjgWLVoUr7766qT1NmzYEPv27YvZs2dP3Io++wYAphZnAKeZjo6OeO211yad8Vu5cmXccMMNsWXLlknrXn311XHJJZdUekQAoMoUwGlmyZIlhyw799xz4/777z9k+RNPPBFbt26NU089NVasWBHt7e0VmBAAqDYvAU9zo6Oj8YMf/CAuvPDCScubm5ujv78/RkZG4s4774wlS5bEtm3bPvH7DA8PR19f36QbADA1KYDT3LXXXht79+6NW265ZdLy119/PR588MG4+eabY9u2bXHxxRfHmjVrPvH7rF+/Ptra2iZuHR0dR3lyAOBoUQCnsRtvvDE2btwYzzzzzCGFbfHixRP/XVNTE11dXbF9+/bYs2fPYb/XunXrore3d+K2c+fOozo7AHD0+BvAaeqmm26K++67LzZv3hxf+tKXfuP64+PjERFx8ODBw97f1NTkXcIAME04AzgNfetb34p77703Nm/eHOedd94h97/55pvR29s78fXY2Fjcfffdcfrpp8fChQsrOSoAUAXOAE4z999/f9x6663x1a9+NTZu3BgbN26MiI+uBnHzzTdHRMSePXti9erVcfbZZ8fcuXPjhRdeiKGh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" alt="DataLoader 取出的第一个样本：一张 28×28 的灰度服装图片">
+    <figcaption>这是 <code>train_dataloader</code> 第一个 batch 里的第 0 个样本，标签为 2（Pullover，套头衫）</figcaption>
+  </figure>
+
+  <div class="note">
+    <div class="label">解读 09 · 读懂这两个形状</div>
+    <p><code>[64, 1, 28, 28]</code> 是 PyTorch 的 <strong>NCHW</strong> 布局：64 个样本、1 个通道（灰度）、高 28、宽 28。<code>[64]</code> 是 64 个标签，每个 batch 一个标量。记住这个形状对后面搭模型至关重要：</p>
+    <ul>
+      <li>全连接网络（如 <code>nn.Linear</code>）需要展平：<code>x.view(x.size(0), -1)</code> → <code>[64, 784]</code>。</li>
+      <li>卷积网络（<code>nn.Conv2d</code>）直接接收 <code>[64, 1, 28, 28]</code>，无需展平。</li>
+      <li>若把 <code>batch_size</code> 改成 32，只有第一维变化；如果哪天看到第二维不是 1，那多半是 <code>transform</code> 把通道顺序弄反了。</li>
+    </ul>
+    <h4><code>next(iter(loader))</code> 的正确用法</h4>
+    <p><code>iter(loader)</code> 每次都<strong>新建</strong>一个迭代器，并触发一次新的 shuffle。所以取“下一批”的正确写法是：</p>
+  <div class="code">
+    <div class="bar"><span class="dot"><i></i><i></i><i></i></span><span class="lang">Python</span></div>
+<pre><code>it = iter(train_dataloader)   # 一次 epoch 的迭代器
+first  = next(it)             # 第 1 批
+second = next(it)             # 第 2 批 —— 同一个迭代器上继续</code></pre>
+  </div>
+    <p>写成 <code>next(iter(loader))</code> 两次，拿到的是两个独立 epoch 的第一批，对“连续查看几批”这类需求是错的；教程里只用一次，所以没问题。</p>
+    <h4>训练循环的真正写法</h4>
+    <p>教程为了演示只取了一批，真实训练是双层循环：</p>
+  <div class="code">
+    <div class="bar"><span class="dot"><i></i><i></i><i></i></span><span class="lang">Python</span></div>
+<pre><code>for epoch in range(num_epochs):
+    for X, y in train_dataloader:          # 遍历完一轮 = 一个 epoch
+        X, y = X.to(device), y.to(device)
+        pred = model(X)
+        loss = loss_fn(pred, y)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()</code></pre>
+  </div>
+    <p>内层 <code>for</code> 每轮结束就自动结束这一 epoch，<strong>不需要你手动重置迭代器</strong> —— <code>for</code> 循环每次都会调用 <code>iter()</code>，于是又洗一次牌。这正是 <code>shuffle=True</code> 生效的位置。</p>
+    <h4>细节</h4>
+    <ul>
+      <li>最后一批可能不满 64 个（本例 32 个），所有 batch 相关的张量操作都要能处理可变的第一维。</li>
+      <li><code>train_labels[0]</code> 是 0 维张量，<code>print</code> 显示为 <code>2</code>；要当 Python 整数用，请 <code>label.item()</code>。</li>
+      <li><code>plt.show()</code> 会阻塞程序，放在训练循环里会让训练慢一个数量级，仅用于调试。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="reading">
+  <h2 class="sec"><span class="num">07</span>延伸阅读
+    <span class="en">Further Reading</span>
+  </h2>
+  <div class="rule"></div>
+
+  <ul>
+    <li><a href="https://pytorch.org/docs/stable/data.html" target="_blank" rel="noopener">torch.utils.data API</a> —— <code>Dataset</code>、<code>DataLoader</code>、<code>Sampler</code>、<code>collate_fn</code> 的完整文档。</li>
+  </ul>
+
+  <p class="hint">原文脚本总运行时间约 6.876 秒（不含首次下载与可视化窗口交互）。</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="cheatsheet">
+  <h2 class="sec"><span class="num">08</span>附：速查表与常见陷阱
+    <span class="en">Cheat sheet</span>
+  </h2>
+  <div class="rule"></div>
+
+  <h3 class="sub">三句话总结</h3>
+  <p>
+    <strong>1.</strong> <code>Dataset</code> = 索引式数据源，实现 <code>__init__</code> / <code>__len__</code> / <code>__getitem__</code>，<code>__getitem__</code> 负责“读一个样本并返回 <code>(特征, 标签)</code>”。<br>
+    <strong>2.</strong> <code>DataLoader</code> = 批处理 + 打乱 + 多进程 + 拼装，训练循环只跟它打交道。<br>
+    <strong>3.</strong> 元数据进内存、像素按需解码 —— 这是自定义数据集性能的分水岭。
+  </p>
+
+  <h3 class="sub">症状 → 病因对照表</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th style="width:38%">你观察到的现象</th><th>大概率原因</th></tr></thead>
+      <tbody>
+        <tr><td>GPU 利用率忽高忽低、训练很慢</td><td><code>num_workers=0</code> 或 worker 太少，数据解码成为瓶颈；也可能是 <code>pin_memory</code> 未开</td></tr>
+        <tr><td>最后一个 batch 报 BatchNorm 相关错误</td><td>最后一批只有 1 个样本，设 <code>drop_last=True</code></td></tr>
+        <tr><td>loss 不降、模型像在“瞎猜”</td><td>图像与标签错位：检查 CSV <code>iloc</code> 列序，或 transform 是否把图弄坏</td></tr>
+        <tr><td>训练 loss 很好、验证很差</td><td><code>shuffle</code> 没开、或数据增强只作用在训练集（后者是正确做法）</td></tr>
+        <tr><td><code>CrossEntropyLoss</code> 报 dtype 错误</td><td>标签被 <code>target_transform</code> 转成了 float，应保持 <code>int64</code></td></tr>
+        <tr><td>多进程下内存暴涨 / 卡死</td><td>数据集对象太大被复制；Windows 忘记 <code>if __name__ == "__main__"</code></td></tr>
+        <tr><td>换目录运行就重新下载数据</td><td><code>root</code> 是相对工作目录的；改用绝对路径或 <code>Path(__file__).parent</code></td></tr>
+        <tr><td>取出的图颜色/通道不对</td><td><code>decode_image</code> 给的是 CHW（RGB），OpenCV 是 BGR（HWC），PIL 是 HWC</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="sub">读完后可以直接上手的一件事</h3>
+  <p>把 <code>CustomImageDataset</code> 复制出来，改三处：<code>__init__</code> 里换成你自己 CSV 的列名（别用 <code>iloc</code> 硬编码下标）、<code>__getitem__</code> 里按列名取文件名、标签保持 <code>int64</code>。然后先用 <code>len(ds)</code> 和文件数对账，再画 9 张图确认图文对应 —— 这两步能挡掉后面 80% 的“模型不收敛”问题。</p>
+
+  <div class="note green">
+    <div class="label">一句话记住</div>
+    <p><strong>Dataset 决定“一个样本长什么样”，DataLoader 决定“一批样本怎么来”。</strong>前者写一次、复用一生；后者调参数、按硬件和任务微调。</p>
+  </div>
+</section>
+
+<footer class="end">
+  <p>本文译自 PyTorch 官方教程 <a href="https://docs.pytorch.org/tutorials/beginner/basics/data_tutorial.html" target="_blank" rel="noopener">Datasets &amp; DataLoaders</a>（Last Updated: 2026-05-07），代码与图像版权归 PyTorch 基金会所有；中文翻译与「解读」为附加内容，供学习参考。</p>
+  <p>术语约定：<code>Dataset</code>、<code>DataLoader</code>、<code>batch</code>、<code>epoch</code>、<code>transform</code> 保留英文（社区通用叫法），首次出现时给出中文说明。</p>
+</footer>
+
+</div>
+
+<script>
+/* 极简 Python 语法着色：只处理关键字 / 字符串 / 注释 / 数字，不改变代码内容 */
+(function () {
+  var KW = new Set(("False None True and as assert break class continue def del elif else except " +
+    "finally for from global if import in is lambda nonlocal not or pass raise return try " +
+    "while with yield async await").split(" "));
+  var re = /(#[^\n]*)|("""[\s\S]*?"""|'''[\s\S]*?'''|[rbuf]{0,2}"(?:\\.|[^"\\])*"|[rbuf]{0,2}'(?:\\.|[^'\\])*')|\b(\d+(?:\.\d+)?)\b|\b([A-Za-z_]\w*)\b/g;
+
+  function esc(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  document.querySelectorAll(".code pre").forEach(function (pre) {
+    if (pre.closest(".out")) return;               // 输出块不着色
+    var src = pre.textContent;
+    if (!/^\s*(import|from|def|class|#)/.test(src) && src.indexOf("=") === -1) return;
+    var out = "", last = 0, m;
+    re.lastIndex = 0;
+    while ((m = re.exec(src)) !== null) {
+      out += esc(src.slice(last, m.index));
+      if (m[1]) out += '<span class="tok-com">' + esc(m[1]) + "</span>";
+      else if (m[2]) out += '<span class="tok-str">' + esc(m[2]) + "</span>";
+      else if (m[3]) out += '<span class="tok-num">' + esc(m[3]) + "</span>";
+      else if (m[4]) {
+        var w = m[4];
+        out += KW.has(w) ? '<span class="tok-kw">' + esc(w) + "</span>" : esc(w);
+      }
+      last = re.lastIndex;
+    }
+    out += esc(src.slice(last));
+    pre.innerHTML = out;
+  });
+})();
+</script>
+</body>
+</html>
