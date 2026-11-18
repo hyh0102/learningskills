@@ -1,0 +1,108 @@
+2026-11-18 13:23:09 | INFO    | ========================================================================
+2026-11-18 13:23:09 | INFO    | run_dir = /home/hanyh/runs/kd_20261118_132309
+2026-11-18 13:23:09 | INFO    | device  = cuda | torch = 2.15.0+cu132 | git = unknown
+2026-11-18 13:23:09 | INFO    | 看曲线：tensorboard --logdir /home/hanyh/runs
+2026-11-18 13:23:22 | INFO    | [teacher ] epoch  1/10 | train loss 1.3327 acc 52.01% | test loss 1.0182 acc 63.84% | lr 1.0e-03 |  12.6s
+2026-11-18 13:23:29 | INFO    | [teacher ] epoch  2/10 | train loss 0.8708 acc 69.38% | test loss 0.8056 acc 71.66% | lr 1.0e-03 |   6.8s
+2026-11-18 13:23:35 | INFO    | [teacher ] epoch  3/10 | train loss 0.6862 acc 76.10% | test loss 0.7360 acc 74.25% | lr 1.0e-03 |   6.8s
+2026-11-18 13:23:42 | INFO    | [teacher ] epoch  4/10 | train loss 0.5444 acc 80.82% | test loss 0.7328 acc 75.10% | lr 1.0e-03 |   6.8s
+2026-11-18 13:23:49 | INFO    | [teacher ] epoch  5/10 | train loss 0.4229 acc 85.15% | test loss 0.7611 acc 75.66% | lr 1.0e-03 |   6.8s
+2026-11-18 13:23:56 | INFO    | [teacher ] epoch  6/10 | train loss 0.3080 acc 89.10% | test loss 0.8381 acc 75.68% | lr 1.0e-03 |   6.8s
+2026-11-18 13:24:02 | INFO    | [teacher ] epoch  7/10 | train loss 0.2235 acc 92.22% | test loss 0.9567 acc 74.18% | lr 1.0e-03 |   6.8s
+2026-11-18 13:24:09 | INFO    | [teacher ] epoch  8/10 | train loss 0.1730 acc 93.93% | test loss 1.0382 acc 75.65% | lr 1.0e-03 |   6.8s
+2026-11-18 13:24:16 | INFO    | [teacher ] epoch  9/10 | train loss 0.1347 acc 95.30% | test loss 1.1708 acc 75.23% | lr 1.0e-03 |   6.8s
+2026-11-18 13:24:23 | INFO    | [teacher ] epoch 10/10 | train loss 0.1253 acc 95.57% | test loss 1.1881 acc 75.51% | lr 1.0e-03 |   6.8s
+2026-11-18 13:24:24 | INFO    | [teacher] 每类指标：
+              precision    recall  f1-score   support
+
+    airplane      0.788     0.801     0.795      1000
+  automobile      0.871     0.885     0.878      1000
+        bird      0.733     0.589     0.653      1000
+         cat      0.540     0.590     0.564      1000
+        deer      0.765     0.701     0.732      1000
+         dog      0.605     0.684     0.642      1000
+        frog      0.821     0.787     0.803      1000
+       horse      0.769     0.817     0.792      1000
+        ship      0.870     0.840     0.855      1000
+       truck      0.824     0.857     0.840      1000
+
+    accuracy                          0.755     10000
+   macro avg      0.759     0.755     0.755     10000
+weighted avg      0.759     0.755     0.755     10000
+
+2026-11-18 13:24:24 | INFO    | [teacher] 最终 acc = 75.51% | 混淆矩阵：/home/hanyh/runs/kd_20261118_132309/teacher_confusion_matrix.png
+2026-11-18 13:24:24 | INFO    | 参数量：DeepNN 1,186,986 / LightNN 267,738（压缩 4.43 倍）
+2026-11-18 13:24:25 | INFO    | [student ] epoch  1/10 | train loss 1.4651 acc 47.20% | test loss 1.2217 acc 55.92% | lr 1.0e-03 |   1.7s
+2026-11-18 13:24:27 | INFO    | [student ] epoch  2/10 | train loss 1.1531 acc 58.96% | test loss 1.0975 acc 61.05% | lr 1.0e-03 |   1.6s
+2026-11-18 13:24:29 | INFO    | [student ] epoch  3/10 | train loss 1.0196 acc 63.93% | test loss 1.0290 acc 63.24% | lr 1.0e-03 |   1.7s
+2026-11-18 13:24:30 | INFO    | [student ] epoch  4/10 | train loss 0.9239 acc 67.47% | test loss 0.9729 acc 65.68% | lr 1.0e-03 |   1.6s
+2026-11-18 13:24:32 | INFO    | [student ] epoch  5/10 | train loss 0.8516 acc 70.20% | test loss 0.9277 acc 67.61% | lr 1.0e-03 |   1.6s
+2026-11-18 13:24:34 | INFO    | [student ] epoch  6/10 | train loss 0.7803 acc 72.56% | test loss 0.9389 acc 67.29% | lr 1.0e-03 |   1.7s
+2026-11-18 13:24:35 | INFO    | [student ] epoch  7/10 | train loss 0.7169 acc 74.68% | test loss 0.9142 acc 68.21% | lr 1.0e-03 |   1.7s
+2026-11-18 13:24:37 | INFO    | [student ] epoch  8/10 | train loss 0.6559 acc 77.03% | test loss 0.9045 acc 69.48% | lr 1.0e-03 |   1.7s
+2026-11-18 13:24:39 | INFO    | [student ] epoch  9/10 | train loss 0.6025 acc 78.88% | test loss 0.8971 acc 69.77% | lr 1.0e-03 |   1.6s
+2026-11-18 13:24:40 | INFO    | [student ] epoch 10/10 | train loss 0.5537 acc 80.40% | test loss 0.9256 acc 69.03% | lr 1.0e-03 |   1.6s
+2026-11-18 13:24:41 | INFO    | [student] 每类指标：
+              precision    recall  f1-score   support
+
+    airplane      0.695     0.730     0.712      1000
+  automobile      0.816     0.780     0.798      1000
+        bird      0.566     0.600     0.583      1000
+         cat      0.574     0.425     0.488      1000
+        deer      0.721     0.557     0.628      1000
+         dog      0.610     0.613     0.611      1000
+        frog      0.736     0.807     0.770      1000
+       horse      0.752     0.735     0.743      1000
+        ship      0.747     0.812     0.778      1000
+       truck      0.674     0.844     0.749      1000
+
+    accuracy                          0.690     10000
+   macro avg      0.689     0.690     0.686     10000
+weighted avg      0.689     0.690     0.686     10000
+
+2026-11-18 13:24:41 | INFO    | [student] 最终 acc = 69.03% | 混淆矩阵：/home/hanyh/runs/kd_20261118_132309/student_confusion_matrix.png
+2026-11-18 13:24:44 | INFO    | [kd      ] epoch  1/10 | train loss 2.4252 acc 46.09% | test loss 1.2905 acc 54.71% | lr 1.0e-03 |   2.9s
+2026-11-18 13:24:47 | INFO    | [kd      ] epoch  2/10 | train loss 1.8611 acc 58.91% | test loss 1.1409 acc 60.56% | lr 1.0e-03 |   2.9s
+2026-11-18 13:24:50 | INFO    | [kd      ] epoch  3/10 | train loss 1.6207 acc 63.84% | test loss 1.0670 acc 64.30% | lr 1.0e-03 |   2.9s
+2026-11-18 13:24:53 | INFO    | [kd      ] epoch  4/10 | train loss 1.4433 acc 67.89% | test loss 1.0319 acc 65.97% | lr 1.0e-03 |   2.9s
+2026-11-18 13:24:56 | INFO    | [kd      ] epoch  5/10 | train loss 1.3018 acc 70.96% | test loss 0.9574 acc 68.33% | lr 1.0e-03 |   2.9s
+2026-11-18 13:24:58 | INFO    | [kd      ] epoch  6/10 | train loss 1.1782 acc 73.75% | test loss 0.9896 acc 68.55% | lr 1.0e-03 |   2.9s
+2026-11-18 13:25:01 | INFO    | [kd      ] epoch  7/10 | train loss 1.0682 acc 75.97% | test loss 0.9537 acc 70.20% | lr 1.0e-03 |   3.0s
+2026-11-18 13:25:04 | INFO    | [kd      ] epoch  8/10 | train loss 0.9675 acc 78.46% | test loss 0.9363 acc 71.05% | lr 1.0e-03 |   2.9s
+2026-11-18 13:25:07 | INFO    | [kd      ] epoch  9/10 | train loss 0.8774 acc 80.44% | test loss 0.9770 acc 70.87% | lr 1.0e-03 |   2.9s
+2026-11-18 13:25:10 | INFO    | [kd      ] epoch 10/10 | train loss 0.7948 acc 82.25% | test loss 1.0069 acc 71.70% | lr 1.0e-03 |   2.9s
+2026-11-18 13:25:11 | INFO    | [kd] 每类指标：
+              precision    recall  f1-score   support
+
+    airplane      0.754     0.713     0.733      1000
+  automobile      0.858     0.797     0.826      1000
+        bird      0.664     0.592     0.626      1000
+         cat      0.510     0.577     0.541      1000
+        deer      0.613     0.740     0.671      1000
+         dog      0.620     0.627     0.623      1000
+        frog      0.804     0.780     0.792      1000
+       horse      0.813     0.740     0.775      1000
+        ship      0.822     0.785     0.803      1000
+       truck      0.781     0.819     0.800      1000
+
+    accuracy                          0.717     10000
+   macro avg      0.724     0.717     0.719     10000
+weighted avg      0.724     0.717     0.719     10000
+
+2026-11-18 13:25:11 | INFO    | [kd] 最终 acc = 71.70% | 混淆矩阵：/home/hanyh/runs/kd_20261118_132309/kd_confusion_matrix.png
+2026-11-18 13:25:11 | INFO    | 
+| 阶段 | 说明 | 准确率 |
+| --- | --- | --- |
+| teacher | DeepNN 1.19M | 75.51% |
+| student | LightNN 0.27M，无老师 | 69.03% |
+| kd | LightNN 0.27M + 软标签 | 71.70% |
+
+* 学生相对老师：-3.81 pp
+* 蒸馏相对基线：+2.67 pp
+2026-11-18 13:25:11 | INFO    | 曲线图      : /home/hanyh/runs/kd_20261118_132309/curves.png
+2026-11-18 13:25:11 | INFO    | ========================================================================
+2026-11-18 13:25:11 | INFO    | TensorBoard : tensorboard --logdir /home/hanyh/runs
+2026-11-18 13:25:11 | INFO    | 指标表      : /home/hanyh/runs/kd_20261118_132309/metrics.csv
+2026-11-18 13:25:11 | INFO    | 文本日志    : /home/hanyh/runs/kd_20261118_132309/train.log
+2026-11-18 13:25:11 | INFO    | 混淆矩阵    : /home/hanyh/runs/kd_20261118_132309/{teacher,student,kd}_confusion_matrix.png
+2026-11-18 13:25:11 | INFO    | 曲线图      : /home/hanyh/runs/kd_20261118_132309/curves.png
