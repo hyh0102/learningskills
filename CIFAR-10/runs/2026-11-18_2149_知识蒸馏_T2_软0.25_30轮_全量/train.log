@@ -1,0 +1,170 @@
+2026-11-18 21:49:30 | INFO    | ========================================================================
+2026-11-18 21:49:30 | INFO    | run_dir = /home/hanyh/runs/2026-11-18_2149_知识蒸馏_T2_软0.25_30轮_全量
+2026-11-18 21:49:30 | INFO    | device  = cuda | torch = 2.15.0+cu132 | git = unknown
+2026-11-18 21:49:30 | INFO    | 看曲线：tensorboard --logdir /home/hanyh/runs
+2026-11-18 21:49:30 | INFO    | 训练配置：30 epoch | bs 128 | adamw lr 1.0e-03 wd 5.0e-04 | label_smoothing 0.10 | warmup 2 | T 2 | aug RandomCrop+Flip
+2026-11-18 21:49:46 | INFO    | [teacher ] epoch  1/30 | train loss 1.8088 acc 38.82% | val loss 1.4141 acc 50.64% | lr 1.0e-03 |  15.8s
+2026-11-18 21:49:53 | INFO    | [teacher ] epoch  2/30 | train loss 1.5279 acc 53.04% | val loss 1.0871 acc 62.22% | lr 1.0e-03 |   6.8s
+2026-11-18 21:49:59 | INFO    | [teacher ] epoch  3/30 | train loss 1.3174 acc 63.75% | val loss 0.8961 acc 70.06% | lr 1.0e-03 |   6.6s
+2026-11-18 21:50:07 | INFO    | [teacher ] epoch  4/30 | train loss 1.2172 acc 68.95% | val loss 0.8018 acc 73.58% | lr 9.9e-04 |   7.2s
+2026-11-18 21:50:13 | INFO    | [teacher ] epoch  5/30 | train loss 1.1555 acc 72.10% | val loss 0.7511 acc 75.80% | lr 9.7e-04 |   6.7s
+2026-11-18 21:50:20 | INFO    | [teacher ] epoch  6/30 | train loss 1.1080 acc 74.47% | val loss 0.7246 acc 77.32% | lr 9.5e-04 |   6.8s
+2026-11-18 21:50:27 | INFO    | [teacher ] epoch  7/30 | train loss 1.0745 acc 76.06% | val loss 0.6818 acc 78.42% | lr 9.2e-04 |   6.9s
+2026-11-18 21:50:34 | INFO    | [teacher ] epoch  8/30 | train loss 1.0512 acc 77.18% | val loss 0.6646 acc 79.78% | lr 8.9e-04 |   6.8s
+2026-11-18 21:50:40 | INFO    | [teacher ] epoch  9/30 | train loss 1.0243 acc 78.71% | val loss 0.6173 acc 81.04% | lr 8.6e-04 |   6.5s
+2026-11-18 21:50:47 | INFO    | [teacher ] epoch 10/30 | train loss 1.0008 acc 79.86% | val loss 0.6037 acc 82.20% | lr 8.1e-04 |   6.6s
+2026-11-18 21:50:54 | INFO    | [teacher ] epoch 11/30 | train loss 0.9812 acc 80.81% | val loss 0.6011 acc 82.28% | lr 7.7e-04 |   6.4s
+2026-11-18 21:51:00 | INFO    | [teacher ] epoch 12/30 | train loss 0.9636 acc 81.60% | val loss 0.6056 acc 82.96% | lr 7.2e-04 |   6.1s
+2026-11-18 21:51:06 | INFO    | [teacher ] epoch 13/30 | train loss 0.9462 acc 82.57% | val loss 0.5581 acc 83.48% | lr 6.7e-04 |   5.9s
+2026-11-18 21:51:12 | INFO    | [teacher ] epoch 14/30 | train loss 0.9341 acc 83.04% | val loss 0.5648 acc 83.42% | lr 6.2e-04 |   6.5s
+2026-11-18 21:51:20 | INFO    | [teacher ] epoch 15/30 | train loss 0.9171 acc 83.75% | val loss 0.5487 acc 83.60% | lr 5.6e-04 |   7.5s
+2026-11-18 21:51:26 | INFO    | [teacher ] epoch 16/30 | train loss 0.9053 acc 84.48% | val loss 0.5290 acc 84.82% | lr 5.1e-04 |   6.5s
+2026-11-18 21:51:33 | INFO    | [teacher ] epoch 17/30 | train loss 0.8896 acc 85.04% | val loss 0.5242 acc 84.26% | lr 4.5e-04 |   6.7s
+2026-11-18 21:51:39 | INFO    | [teacher ] epoch 18/30 | train loss 0.8805 acc 85.48% | val loss 0.5175 acc 84.92% | lr 3.9e-04 |   6.2s
+2026-11-18 21:51:46 | INFO    | [teacher ] epoch 19/30 | train loss 0.8687 acc 86.18% | val loss 0.5095 acc 85.38% | lr 3.4e-04 |   6.9s
+2026-11-18 21:51:52 | INFO    | [teacher ] epoch 20/30 | train loss 0.8583 acc 86.67% | val loss 0.5073 acc 85.24% | lr 2.9e-04 |   6.2s
+2026-11-18 21:51:59 | INFO    | [teacher ] epoch 21/30 | train loss 0.8467 acc 87.30% | val loss 0.5122 acc 85.42% | lr 2.4e-04 |   6.6s
+2026-11-18 21:52:06 | INFO    | [teacher ] epoch 22/30 | train loss 0.8424 acc 87.54% | val loss 0.4944 acc 85.48% | lr 2.0e-04 |   6.8s
+2026-11-18 21:52:12 | INFO    | [teacher ] epoch 23/30 | train loss 0.8336 acc 87.80% | val loss 0.4940 acc 85.66% | lr 1.5e-04 |   6.3s
+2026-11-18 21:52:18 | INFO    | [teacher ] epoch 24/30 | train loss 0.8254 acc 88.30% | val loss 0.4877 acc 86.08% | lr 1.2e-04 |   5.8s
+2026-11-18 21:52:24 | INFO    | [teacher ] epoch 25/30 | train loss 0.8189 acc 88.62% | val loss 0.4913 acc 86.32% | lr 8.6e-05 |   6.5s
+2026-11-18 21:52:30 | INFO    | [teacher ] epoch 26/30 | train loss 0.8141 acc 88.89% | val loss 0.4821 acc 86.40% | lr 5.9e-05 |   5.9s
+2026-11-18 21:52:36 | INFO    | [teacher ] epoch 27/30 | train loss 0.8109 acc 89.02% | val loss 0.4759 acc 86.50% | lr 3.8e-05 |   6.0s
+2026-11-18 21:52:42 | INFO    | [teacher ] epoch 28/30 | train loss 0.8079 acc 89.36% | val loss 0.4750 acc 86.42% | lr 2.2e-05 |   6.2s
+2026-11-18 21:52:50 | INFO    | [teacher ] epoch 29/30 | train loss 0.8048 acc 89.42% | val loss 0.4741 acc 86.50% | lr 1.3e-05 |   7.6s
+2026-11-18 21:52:59 | INFO    | [teacher ] epoch 30/30 | train loss 0.8044 acc 89.47% | val loss 0.4723 acc 86.74% | lr 1.0e-05 |   8.5s
+2026-11-18 21:53:01 | INFO    | [teacher] 每类指标：
+              precision    recall  f1-score   support
+
+    airplane      0.850     0.870     0.860      1000
+  automobile      0.923     0.941     0.932      1000
+        bird      0.807     0.761     0.783      1000
+         cat      0.742     0.716     0.729      1000
+        deer      0.828     0.835     0.832      1000
+         dog      0.794     0.780     0.787      1000
+        frog      0.850     0.898     0.874      1000
+       horse      0.887     0.898     0.893      1000
+        ship      0.924     0.914     0.919      1000
+       truck      0.909     0.912     0.911      1000
+
+    accuracy                          0.853     10000
+   macro avg      0.852     0.853     0.852     10000
+weighted avg      0.852     0.853     0.852     10000
+
+2026-11-18 21:53:01 | INFO    | [teacher] 最终 acc = 85.25% | 混淆矩阵：/home/hanyh/runs/2026-11-18_2149_知识蒸馏_T2_软0.25_30轮_全量/teacher_confusion_matrix.png
+2026-11-18 21:53:01 | INFO    | 参数量：DeepNN 1,186,986 / LightNN 267,738（压缩 4.43 倍）
+2026-11-18 21:53:09 | INFO    | [student ] epoch  1/30 | train loss 1.8475 acc 37.34% | val loss 1.4905 acc 47.68% | lr 1.0e-03 |   7.7s
+2026-11-18 21:53:16 | INFO    | [student ] epoch  2/30 | train loss 1.6452 acc 47.18% | val loss 1.3351 acc 54.40% | lr 1.0e-03 |   7.0s
+2026-11-18 21:53:21 | INFO    | [student ] epoch  3/30 | train loss 1.5523 acc 51.96% | val loss 1.2343 acc 57.40% | lr 1.0e-03 |   5.1s
+2026-11-18 21:53:27 | INFO    | [student ] epoch  4/30 | train loss 1.4834 acc 55.86% | val loss 1.1714 acc 61.72% | lr 9.9e-04 |   6.5s
+2026-11-18 21:53:34 | INFO    | [student ] epoch  5/30 | train loss 1.4370 acc 58.10% | val loss 1.0938 acc 63.60% | lr 9.7e-04 |   6.5s
+2026-11-18 21:53:40 | INFO    | [student ] epoch  6/30 | train loss 1.3918 acc 60.52% | val loss 1.0551 acc 64.90% | lr 9.5e-04 |   6.5s
+2026-11-18 21:53:46 | INFO    | [student ] epoch  7/30 | train loss 1.3613 acc 62.06% | val loss 1.0074 acc 66.38% | lr 9.2e-04 |   5.5s
+2026-11-18 21:53:53 | INFO    | [student ] epoch  8/30 | train loss 1.3342 acc 63.53% | val loss 0.9865 acc 67.60% | lr 8.9e-04 |   6.7s
+2026-11-18 21:53:59 | INFO    | [student ] epoch  9/30 | train loss 1.3117 acc 64.62% | val loss 0.9493 acc 68.64% | lr 8.6e-04 |   6.9s
+2026-11-18 21:54:05 | INFO    | [student ] epoch 10/30 | train loss 1.2857 acc 65.66% | val loss 0.9339 acc 69.96% | lr 8.1e-04 |   6.0s
+2026-11-18 21:54:11 | INFO    | [student ] epoch 11/30 | train loss 1.2744 acc 66.59% | val loss 0.9217 acc 70.26% | lr 7.7e-04 |   5.1s
+2026-11-18 21:54:16 | INFO    | [student ] epoch 12/30 | train loss 1.2592 acc 67.28% | val loss 0.8889 acc 71.86% | lr 7.2e-04 |   5.8s
+2026-11-18 21:54:22 | INFO    | [student ] epoch 13/30 | train loss 1.2436 acc 67.90% | val loss 0.8860 acc 71.72% | lr 6.7e-04 |   6.0s
+2026-11-18 21:54:28 | INFO    | [student ] epoch 14/30 | train loss 1.2266 acc 69.02% | val loss 0.8636 acc 72.58% | lr 6.2e-04 |   5.7s
+2026-11-18 21:54:33 | INFO    | [student ] epoch 15/30 | train loss 1.2188 acc 69.07% | val loss 0.8440 acc 73.36% | lr 5.6e-04 |   5.2s
+2026-11-18 21:54:39 | INFO    | [student ] epoch 16/30 | train loss 1.2090 acc 69.89% | val loss 0.8397 acc 73.62% | lr 5.1e-04 |   5.8s
+2026-11-18 21:54:45 | INFO    | [student ] epoch 17/30 | train loss 1.1970 acc 70.49% | val loss 0.8412 acc 73.04% | lr 4.5e-04 |   6.2s
+2026-11-18 21:54:51 | INFO    | [student ] epoch 18/30 | train loss 1.1903 acc 70.92% | val loss 0.8256 acc 74.06% | lr 3.9e-04 |   5.6s
+2026-11-18 21:54:57 | INFO    | [student ] epoch 19/30 | train loss 1.1829 acc 71.15% | val loss 0.8206 acc 74.02% | lr 3.4e-04 |   6.6s
+2026-11-18 21:55:04 | INFO    | [student ] epoch 20/30 | train loss 1.1729 acc 71.55% | val loss 0.8133 acc 74.46% | lr 2.9e-04 |   6.7s
+2026-11-18 21:55:10 | INFO    | [student ] epoch 21/30 | train loss 1.1654 acc 72.00% | val loss 0.7948 acc 74.30% | lr 2.4e-04 |   5.5s
+2026-11-18 21:55:15 | INFO    | [student ] epoch 22/30 | train loss 1.1590 acc 72.37% | val loss 0.7947 acc 75.06% | lr 2.0e-04 |   5.2s
+2026-11-18 21:55:20 | INFO    | [student ] epoch 23/30 | train loss 1.1626 acc 72.02% | val loss 0.7926 acc 75.16% | lr 1.5e-04 |   5.3s
+2026-11-18 21:55:26 | INFO    | [student ] epoch 24/30 | train loss 1.1534 acc 72.77% | val loss 0.7972 acc 74.88% | lr 1.2e-04 |   6.0s
+2026-11-18 21:55:32 | INFO    | [student ] epoch 25/30 | train loss 1.1492 acc 72.95% | val loss 0.7892 acc 75.64% | lr 8.6e-05 |   6.0s
+2026-11-18 21:55:39 | INFO    | [student ] epoch 26/30 | train loss 1.1458 acc 72.71% | val loss 0.7836 acc 75.52% | lr 5.9e-05 |   6.6s
+2026-11-18 21:55:44 | INFO    | [student ] epoch 27/30 | train loss 1.1401 acc 73.29% | val loss 0.7819 acc 75.32% | lr 3.8e-05 |   5.4s
+2026-11-18 21:55:51 | INFO    | [student ] epoch 28/30 | train loss 1.1415 acc 73.16% | val loss 0.7821 acc 75.44% | lr 2.2e-05 |   6.3s
+2026-11-18 21:55:57 | INFO    | [student ] epoch 29/30 | train loss 1.1386 acc 72.89% | val loss 0.7804 acc 75.28% | lr 1.3e-05 |   6.3s
+2026-11-18 21:56:03 | INFO    | [student ] epoch 30/30 | train loss 1.1408 acc 72.93% | val loss 0.7780 acc 75.44% | lr 1.0e-05 |   5.7s
+2026-11-18 21:56:04 | INFO    | [student] 每类指标：
+              precision    recall  f1-score   support
+
+    airplane      0.720     0.813     0.764      1000
+  automobile      0.847     0.861     0.854      1000
+        bird      0.697     0.610     0.651      1000
+         cat      0.609     0.506     0.553      1000
+        deer      0.726     0.702     0.714      1000
+         dog      0.616     0.666     0.640      1000
+        frog      0.748     0.859     0.799      1000
+       horse      0.790     0.768     0.779      1000
+        ship      0.834     0.837     0.835      1000
+       truck      0.835     0.814     0.824      1000
+
+    accuracy                          0.744     10000
+   macro avg      0.742     0.744     0.741     10000
+weighted avg      0.742     0.744     0.741     10000
+
+2026-11-18 21:56:04 | INFO    | [student] 最终 acc = 74.36% | 混淆矩阵：/home/hanyh/runs/2026-11-18_2149_知识蒸馏_T2_软0.25_30轮_全量/student_confusion_matrix.png
+2026-11-18 21:56:10 | INFO    | [kd      ] epoch  1/30 | train loss 1.7951 acc 37.53% | val loss 1.4663 acc 48.56% | lr 1.0e-03 |   5.1s
+2026-11-18 21:56:16 | INFO    | [kd      ] epoch  2/30 | train loss 1.5603 acc 47.84% | val loss 1.3109 acc 54.46% | lr 1.0e-03 |   6.0s
+2026-11-18 21:56:21 | INFO    | [kd      ] epoch  3/30 | train loss 1.4489 acc 52.86% | val loss 1.2045 acc 58.56% | lr 1.0e-03 |   5.6s
+2026-11-18 21:56:28 | INFO    | [kd      ] epoch  4/30 | train loss 1.3688 acc 56.40% | val loss 1.1377 acc 61.12% | lr 9.9e-04 |   6.9s
+2026-11-18 21:56:34 | INFO    | [kd      ] epoch  5/30 | train loss 1.3115 acc 59.21% | val loss 1.1043 acc 63.72% | lr 9.7e-04 |   6.2s
+2026-11-18 21:56:40 | INFO    | [kd      ] epoch  6/30 | train loss 1.2670 acc 61.26% | val loss 1.0397 acc 65.60% | lr 9.5e-04 |   5.8s
+2026-11-18 21:56:46 | INFO    | [kd      ] epoch  7/30 | train loss 1.2305 acc 62.78% | val loss 0.9958 acc 66.96% | lr 9.2e-04 |   6.2s
+2026-11-18 21:56:53 | INFO    | [kd      ] epoch  8/30 | train loss 1.1994 acc 64.36% | val loss 0.9707 acc 67.64% | lr 8.9e-04 |   6.6s
+2026-11-18 21:56:58 | INFO    | [kd      ] epoch  9/30 | train loss 1.1802 acc 65.31% | val loss 0.9499 acc 69.14% | lr 8.6e-04 |   5.5s
+2026-11-18 21:57:06 | INFO    | [kd      ] epoch 10/30 | train loss 1.1512 acc 66.23% | val loss 0.9318 acc 70.02% | lr 8.1e-04 |   7.3s
+2026-11-18 21:57:14 | INFO    | [kd      ] epoch 11/30 | train loss 1.1391 acc 67.17% | val loss 0.9148 acc 70.44% | lr 7.7e-04 |   8.1s
+2026-11-18 21:57:22 | INFO    | [kd      ] epoch 12/30 | train loss 1.1215 acc 67.61% | val loss 0.8841 acc 71.34% | lr 7.2e-04 |   8.2s
+2026-11-18 21:57:28 | INFO    | [kd      ] epoch 13/30 | train loss 1.1118 acc 67.97% | val loss 0.8945 acc 71.22% | lr 6.7e-04 |   6.2s
+2026-11-18 21:57:35 | INFO    | [kd      ] epoch 14/30 | train loss 1.0954 acc 68.93% | val loss 0.8608 acc 72.24% | lr 6.2e-04 |   6.9s
+2026-11-18 21:57:42 | INFO    | [kd      ] epoch 15/30 | train loss 1.0830 acc 69.60% | val loss 0.8694 acc 71.42% | lr 5.6e-04 |   6.7s
+2026-11-18 21:57:48 | INFO    | [kd      ] epoch 16/30 | train loss 1.0745 acc 69.75% | val loss 0.8473 acc 72.66% | lr 5.1e-04 |   6.3s
+2026-11-18 21:57:56 | INFO    | [kd      ] epoch 17/30 | train loss 1.0643 acc 70.35% | val loss 0.8327 acc 73.42% | lr 4.5e-04 |   8.0s
+2026-11-18 21:58:04 | INFO    | [kd      ] epoch 18/30 | train loss 1.0532 acc 70.80% | val loss 0.8240 acc 73.98% | lr 3.9e-04 |   8.2s
+2026-11-18 21:58:13 | INFO    | [kd      ] epoch 19/30 | train loss 1.0449 acc 71.20% | val loss 0.8190 acc 73.46% | lr 3.4e-04 |   8.2s
+2026-11-18 21:58:19 | INFO    | [kd      ] epoch 20/30 | train loss 1.0422 acc 71.20% | val loss 0.7998 acc 74.20% | lr 2.9e-04 |   6.5s
+2026-11-18 21:58:25 | INFO    | [kd      ] epoch 21/30 | train loss 1.0347 acc 71.71% | val loss 0.8108 acc 74.10% | lr 2.4e-04 |   5.5s
+2026-11-18 21:58:31 | INFO    | [kd      ] epoch 22/30 | train loss 1.0266 acc 72.03% | val loss 0.8038 acc 75.06% | lr 2.0e-04 |   6.4s
+2026-11-18 21:58:37 | INFO    | [kd      ] epoch 23/30 | train loss 1.0222 acc 72.33% | val loss 0.8020 acc 74.72% | lr 1.5e-04 |   5.9s
+2026-11-18 21:58:43 | INFO    | [kd      ] epoch 24/30 | train loss 1.0155 acc 72.62% | val loss 0.7943 acc 74.66% | lr 1.2e-04 |   6.4s
+2026-11-18 21:58:51 | INFO    | [kd      ] epoch 25/30 | train loss 1.0144 acc 72.66% | val loss 0.7930 acc 75.28% | lr 8.6e-05 |   7.5s
+2026-11-18 21:58:59 | INFO    | [kd      ] epoch 26/30 | train loss 1.0091 acc 72.88% | val loss 0.7954 acc 75.24% | lr 5.9e-05 |   7.9s
+2026-11-18 21:59:06 | INFO    | [kd      ] epoch 27/30 | train loss 1.0059 acc 72.84% | val loss 0.7851 acc 75.40% | lr 3.8e-05 |   7.8s
+2026-11-18 21:59:13 | INFO    | [kd      ] epoch 28/30 | train loss 1.0047 acc 72.93% | val loss 0.7889 acc 75.34% | lr 2.2e-05 |   6.8s
+2026-11-18 21:59:19 | INFO    | [kd      ] epoch 29/30 | train loss 1.0027 acc 73.17% | val loss 0.7886 acc 75.32% | lr 1.3e-05 |   6.1s
+2026-11-18 21:59:25 | INFO    | [kd      ] epoch 30/30 | train loss 1.0050 acc 73.05% | val loss 0.7863 acc 75.44% | lr 1.0e-05 |   6.0s
+2026-11-18 21:59:27 | INFO    | [kd] 每类指标：
+              precision    recall  f1-score   support
+
+    airplane      0.736     0.814     0.773      1000
+  automobile      0.851     0.865     0.858      1000
+        bird      0.688     0.612     0.648      1000
+         cat      0.603     0.519     0.558      1000
+        deer      0.696     0.688     0.692      1000
+         dog      0.618     0.675     0.645      1000
+        frog      0.767     0.843     0.803      1000
+       horse      0.794     0.767     0.780      1000
+        ship      0.857     0.838     0.847      1000
+       truck      0.827     0.830     0.828      1000
+
+    accuracy                          0.745     10000
+   macro avg      0.744     0.745     0.743     10000
+weighted avg      0.744     0.745     0.743     10000
+
+2026-11-18 21:59:27 | INFO    | [kd] 最终 acc = 74.51% | 混淆矩阵：/home/hanyh/runs/2026-11-18_2149_知识蒸馏_T2_软0.25_30轮_全量/kd_confusion_matrix.png
+2026-11-18 21:59:27 | INFO    | 
+| 阶段 | 说明 | 准确率 |
+| --- | --- | --- |
+| teacher | DeepNN 1.19M | 85.25% |
+| student | LightNN 0.27M，无老师 | 74.36% |
+| kd | LightNN 0.27M + 软标签 | 74.51% |
+
+* 学生相对老师：-10.74 pp
+* 蒸馏相对基线：+0.15 pp
+验证集（选模型用）：teacher 86.74% | student 75.64% | kd 75.44%
+2026-11-18 21:59:27 | INFO    | 曲线图      : /home/hanyh/runs/2026-11-18_2149_知识蒸馏_T2_软0.25_30轮_全量/curves.png
+2026-11-18 21:59:27 | INFO    | ========================================================================
+2026-11-18 21:59:27 | INFO    | TensorBoard : tensorboard --logdir /home/hanyh/runs
+2026-11-18 21:59:27 | INFO    | 指标表      : /home/hanyh/runs/2026-11-18_2149_知识蒸馏_T2_软0.25_30轮_全量/metrics.csv
+2026-11-18 21:59:27 | INFO    | 文本日志    : /home/hanyh/runs/2026-11-18_2149_知识蒸馏_T2_软0.25_30轮_全量/train.log
+2026-11-18 21:59:27 | INFO    | 混淆矩阵    : /home/hanyh/runs/2026-11-18_2149_知识蒸馏_T2_软0.25_30轮_全量/{teacher,student,kd}_confusion_matrix.png
+2026-11-18 21:59:27 | INFO    | 曲线图      : /home/hanyh/runs/2026-11-18_2149_知识蒸馏_T2_软0.25_30轮_全量/curves.png
